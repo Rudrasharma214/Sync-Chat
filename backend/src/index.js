@@ -10,7 +10,7 @@ import authRoutes from "./routes/auth.route.js"
 import chatRoutes from "./routes/chat.route.js"
 import {connectDB} from "./lib/db.js"
 import { app, server } from "./lib/socket.js";
-
+import aiRoutes from "./routes/ai.route.js";
 dotenv.config()
 const PORT = process.env.PORT
 const __dirname = path.resolve();
@@ -26,14 +26,16 @@ app.use(cors({
 //--------------api calling--------------------
 app.use("/api/auth",authRoutes)
 app.use("/api/chat",chatRoutes)
+app.use("/api/aichat", aiRoutes);
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-  });
-}
+// if (process.env.NODE_ENV === "production") {
+//   app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+//   });
+// }
 
 server.listen(PORT, ()=>{
     console.log("server is running at " + PORT)

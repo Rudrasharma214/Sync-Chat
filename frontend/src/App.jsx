@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import SettingsP from "./pages/SettingsP";
+import AIChatPage from "./pages/AIChatPage";
 
 //----------------------------------------------
 
@@ -54,7 +55,7 @@ const App = () => {
         />
         <Route
           path="/signup"
-          element={!authUser ? <Signup /> : <Navigate to="/" />}
+          element={<Signup />}
         />
         <Route
           path="/login"
@@ -64,6 +65,10 @@ const App = () => {
         <Route
           path="/profile"
           element={authUser ? <Profile /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/aichat"
+          element={authUser ? <AIChatPage /> : <Navigate to="/login" />}
         />
       </Routes>
       <Toaster />

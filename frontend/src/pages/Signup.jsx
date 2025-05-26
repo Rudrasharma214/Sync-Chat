@@ -1,7 +1,7 @@
 import React,{ useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Eye, EyeClosed, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
 
@@ -13,7 +13,7 @@ const Signup = () => {
     password: "",
   });
   const { isSigningUp, signup } = useAuthStore();
-
+  const navigate = useNavigate()
   const validateForm = () => {
     if (!formdata.fullname.trim()) return toast.error("Full name is required");
     if (!formdata.email.trim()) return toast.error("Email is required");
@@ -29,11 +29,14 @@ const Signup = () => {
 
     const success = validateForm();
 
-    if (success === true) signup(formdata);
+    if (success === true) {
+      signup(formdata)
+    };
+
   };
 
    return (
-    <div className="h-screen mt-6 grid lg:grid-cols-2">
+    <div className="h-screen mt-6 overflow-hidden grid lg:grid-cols-2">
 
       {/* left side */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">

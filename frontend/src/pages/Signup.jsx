@@ -29,13 +29,8 @@ const Signup = () => {
 
   const success = validateForm();
   if (success === true) {
-    try {
-      await signup(formdata); // wait for signup to complete
-      toast.success("Signup successful");
-      navigate("/login"); // redirect to login page
-    } catch (error) {
-      toast.error(error.message || "Signup failed");
-    }
+      await signup(formdata);
+      navigate("/login");
   }
 };
 

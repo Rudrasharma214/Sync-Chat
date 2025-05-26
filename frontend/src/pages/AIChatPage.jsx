@@ -4,6 +4,8 @@ import { Send, Image as ImageIcon, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import vscDarkPlus from "react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus";
+import { axiosIN } from "../lib/axios.js";
+
 
 const AIChatPage = () => {
   const [messages, setMessages] = useState([]);
@@ -68,8 +70,8 @@ const AIChatPage = () => {
         payload.image = imageBase64;
       }
 
-      const res = await axios.post(
-        "http://localhost:5001/api/aichat/ai",
+      const res = await axiosIN.post(
+        "/aichat/ai",
         payload,
         { withCredentials: true }
       );
@@ -90,8 +92,8 @@ const AIChatPage = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5001/api/aichat/history",
+        const res = await axiosIN.get(
+          "/aichat/history",
           {
             withCredentials: true,
           }

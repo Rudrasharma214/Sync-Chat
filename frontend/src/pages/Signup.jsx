@@ -24,16 +24,20 @@ const Signup = () => {
     return true;
   };
 
-  const handlesubmit = (e) => {
-    e.preventDefault();
+  const handlesubmit = async (e) => {
+  e.preventDefault();
 
-    const success = validateForm();
-
-    if (success === true) {
-      signup(formdata)
-    };
-
-  };
+  const success = validateForm();
+  if (success === true) {
+    try {
+      await signup(formdata); // wait for signup to complete
+      toast.success("Signup successful");
+      navigate("/login"); // redirect to login page
+    } catch (error) {
+      toast.error(error.message || "Signup failed");
+    }
+  }
+};
 
    return (
     <div className="h-screen mt-6 overflow-hidden grid lg:grid-cols-2">

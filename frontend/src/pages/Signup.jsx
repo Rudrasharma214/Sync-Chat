@@ -23,16 +23,34 @@ const Signup = () => {
   const { isSigningUp, signup } = useAuthStore();
   const navigate = useNavigate();
   const validateForm = () => {
-    if (!formdata.fullname.trim()) return toast.error("Full name is required");
-    if (!formdata.email.trim()) return toast.error("Email is required");
-    if (!/\S+@\S+\.\S+/.test(formdata.email))
-      return toast.error("Invalid email format");
-    if (!formdata.password) return toast.error("Password is required");
-    if (formdata.password.length < 6)
-      return toast.error("Password must be at least 6 characters");
+  if (!formdata.fullname.trim()) {
+    toast.error("Full name is required");
+    return false;
+  }
 
-    return true;
-  };
+  if (!formdata.email.trim()) {
+    toast.error("Email is required");
+    return false;
+  }
+
+  if (!/\S+@\S+\.\S+/.test(formdata.email)) {
+    toast.error("Invalid email format");
+    return false;
+  }
+
+  if (!formdata.password) {
+    toast.error("Password is required");
+    return false;
+  }
+
+  if (formdata.password.length < 6) {
+    toast.error("Password must be at least 6 characters");
+    return false;
+  }
+
+  return true;
+};
+
 
   const handlesubmit = async (e) => { // Make handlesubmit an async function
     e.preventDefault();

@@ -1,6 +1,14 @@
-import React,{ useState } from "react";
+import React, { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Eye, EyeClosed, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
+import {
+  Eye,
+  EyeClosed,
+  Loader2,
+  Lock,
+  Mail,
+  MessageSquare,
+  User,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
@@ -13,30 +21,32 @@ const Signup = () => {
     password: "",
   });
   const { isSigningUp, signup } = useAuthStore();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const validateForm = () => {
     if (!formdata.fullname.trim()) return toast.error("Full name is required");
     if (!formdata.email.trim()) return toast.error("Email is required");
-    if (!/\S+@\S+\.\S+/.test(formdata.email)) return toast.error("Invalid email format");
+    if (!/\S+@\S+\.\S+/.test(formdata.email))
+      return toast.error("Invalid email format");
     if (!formdata.password) return toast.error("Password is required");
-    if (formdata.password.length < 6) return toast.error("Password must be at least 6 characters");
+    if (formdata.password.length < 6)
+      return toast.error("Password must be at least 6 characters");
 
     return true;
   };
 
-  const handlesubmit = async (e) => {
-  e.preventDefault();
+  const handlesubmit = async (e) => { // Make handlesubmit an async function
+    e.preventDefault();
 
-  const success = validateForm();
-  if (success === true) {
+    const success = validateForm();
+
+    if (success) { 
       await signup(formdata);
       navigate("/login");
-  }
-};
-
-   return (
+    };
+  };
+  
+  return (
     <div className="h-screen mt-6 overflow-hidden grid lg:grid-cols-2">
-
       {/* left side */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
@@ -50,7 +60,9 @@ const Signup = () => {
                 <MessageSquare className="size-6 text-primary" />
               </div>
               <h1 className="text-2xl font-bold mt-2">Create Account</h1>
-              <p className="text-base-content/60">Get started with your free account</p>
+              <p className="text-base-content/60">
+                Get started with your free account
+              </p>
             </div>
           </div>
 
@@ -68,7 +80,9 @@ const Signup = () => {
                   className={`input input-bordered w-full pl-10`}
                   placeholder="John Doe"
                   value={formdata.fullname}
-                  onChange={(e) => setFormdata({ ...formdata, fullname: e.target.value })}
+                  onChange={(e) =>
+                    setFormdata({ ...formdata, fullname: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -86,7 +100,9 @@ const Signup = () => {
                   className={`input input-bordered w-full pl-10`}
                   placeholder="you@example.com"
                   value={formdata.email}
-                  onChange={(e) => setFormdata({ ...formdata, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormdata({ ...formdata, email: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -104,7 +120,9 @@ const Signup = () => {
                   className={`input input-bordered w-full pl-10`}
                   placeholder="••••••••"
                   value={formdata.password}
-                  onChange={(e) => setFormdata({ ...formdata, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormdata({ ...formdata, password: e.target.value })
+                  }
                 />
                 <button
                   type="button"
@@ -120,7 +138,11 @@ const Signup = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary w-full" disabled={isSigningUp}>
+            <button
+              type="submit"
+              className="btn btn-primary w-full"
+              disabled={isSigningUp}
+            >
               {isSigningUp ? (
                 <>
                   <Loader2 className="size-5 animate-spin" />

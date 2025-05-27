@@ -119,7 +119,7 @@ const AIChatPage = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
+  
   return (
     <div className="flex flex-col h-screen w-screen bg-base-200 p-4">
       <div className="py-4 text-center">

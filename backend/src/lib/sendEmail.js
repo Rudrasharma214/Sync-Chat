@@ -5,7 +5,7 @@ export const sendEmail = async (to, subject, text) => {
     service: "gmail", // ya SMTP config
     auth: {
       user: "rudraspam90@gmail.com",
-      pass: "fjoncpwapvbyrkcc",
+      pass: process.env.PASS,
     },
   });
 

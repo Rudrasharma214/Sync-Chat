@@ -1,8 +1,8 @@
--------------------------Sync Chat-------------------------- 
+#-------------------------Sync Chat-------------------------- 
 
 A real-time chat application that lets users communicate instantly over the web.
 
-🚀 Features
+##  🚀 Features
 
 - 🔄 Real-time messaging (Socket.IO)
 - 👥 One-to-one chat and image sharing
@@ -12,27 +12,33 @@ A real-time chat application that lets users communicate instantly over the web.
 - ✅ Online/offline status indicators
 - 📱 Responsive UI for mobile and desktop
 
-Demo :- https://sync-chat-bra7.onrender.com/
+## 🔗 Live Demo
 
-🛠️ Tech Stack
+👉  https://sync-chat-bra7.onrender.com/
 
-Frontend:
+---
+
+## 🛠️ Tech Stack
+
+**Frontend:**
 - React.js
 - Tailwind CSS / CSS Modules
 
-Backend:
+**Backend:**
 - Node.js
 - Express.js
 - Socket.IO
 
-Database:
+**Database:**
 - MongoDB (with Mongoose)
 - Cloudinary
 
+---
   
-Environmental Variable:
-create .env file:-
+## 📂 Environmental Variable:
+Create a `.env` file in the root directory and add the following:
 
+```env
 MONGODB_URI=
 PORT=
 JWT_SECRET=

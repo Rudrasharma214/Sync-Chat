@@ -1,4 +1,4 @@
-#-------------------------Sync Chat-------------------------- 
+# -------------------------Sync Chat-------------------------- 
 
 A real-time chat application that lets users communicate instantly over the web.
 

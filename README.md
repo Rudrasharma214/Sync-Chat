@@ -16,7 +16,7 @@ Demo :- https://sync-chat-bra7.onrender.com/
 
 🛠️ Tech Stack
 
-##Frontend:##
+Frontend:
 - React.js
 - Tailwind CSS / CSS Modules
 

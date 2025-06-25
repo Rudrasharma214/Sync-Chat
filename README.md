@@ -12,6 +12,8 @@ A real-time chat application that lets users communicate instantly over the web.
 - ✅ Online/offline status indicators
 - 📱 Responsive UI for mobile and desktop
 
+Demo :- https://sync-chat-bra7.onrender.com/
+
 🛠️ Tech Stack
 
 Frontend:

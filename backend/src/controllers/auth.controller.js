@@ -85,7 +85,7 @@ export const verifyPasswordAndSendOtp = async (req, res) => {
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
+    console.log(`OTP for ${email} :-`, otp);
     user.otp = otp;
     user.otpExpiry = expiry;
     await user.save();

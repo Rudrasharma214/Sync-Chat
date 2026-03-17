@@ -1,7 +1,7 @@
 import AI from "../models/ai.model.js";
-import cloudinary from "../lib/cloudinary.js";
+import cloudinary from "../config/cloudinary.js";
 import axios from "axios";
-import { getReceiverSocketId, io } from "../lib/socket.js";
+import { getReceiverSocketId, io } from "../config/socket.js";
 import mongoose from "mongoose"; // Import mongoose to work with ObjectIds
 
 // Define a fixed ObjectId for the AI system.

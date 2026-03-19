@@ -1,49 +1,23 @@
-import { generatetoken } from "../lib/utils.js";
-import User from "../models/user.model.js"
-import bcrypt from "bcryptjs"
-import cloudinary from "../lib/cloudinary.js"
-import {sendEmail} from "../lib/sendEmail.js"
-
-
-export const signup = async (req, res) => {
-    const { fullname, email, password } = req.body;
-    try {
-        if (!fullname || !email || !password) {
-            return res.status(400).json({ message: "Name Email and Password required." })
-        }
-        if (password.length < 6) {
-            return res.status(400).json({ message: "Password must be atleast 6 character." })
+import * as userService from "../services/user.service.js"
+import STATUS from "../constant/statusCodes.js";
+import { sendResponse, sendErrorResponse } from '../utils/response.js'
+ 
+export const signup = async (req, res, next) => {
+    try{
+        const {fullname, email, password} = req.body
+        if(!fullname || !email || !password) {
+            return sendErrorResponse(res, STATUS.BAD_REQUEST, "All fields are required.")
         }
 
-        const user = await User.findOne({ email })
+        const result = await userService.createUser({fullname, email, password})
 
-        if (user) return res.status(400).json({ message: "Email already exists" })
-
-        const salt = await bcrypt.genSalt(10)
-        const hashP = await bcrypt.hash(password, salt)
-
-        const newuser = new User({
-            fullname: fullname,
-            email: email,
-            password: hashP
-        })
-        if (newuser) {
-            await newuser.save()
-            
-            res.status(201).json({
-                _id: newuser._id,
-                fullname: newuser.fullname,
-                email: newuser.email,
-                profilepic: newuser.profilepic,
-            })
-        } else {
-            return res.status(400).json({ message: "Invalid user data" })
+        if(!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
-
+        return sendResponse(res, STATUS.CREATED, "User created successfully", result.data)
     } catch (e) {
-        console.log("error in signup authController", e.message)
-        return res.status(500).json({ message: "Internal server error" })
+        next(e)
     }
 }
 // export const login = async (req, res) => {

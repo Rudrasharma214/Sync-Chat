@@ -1,6 +1,7 @@
 import * as userService from "../services/user.service.js"
 import STATUS from "../constant/statusCodes.js";
 import { sendResponse, sendErrorResponse } from '../utils/response.js'
+import env from "../config/env.js";
  
 export const signup = async (req, res, next) => {
     try{
@@ -16,62 +17,42 @@ export const signup = async (req, res, next) => {
         }
 
         return sendResponse(res, STATUS.CREATED, "User created successfully", result.data)
-    } catch (e) {
-        next(e)
+    } catch (error) {
+        next(error);
     }
 }
-// export const login = async (req, res) => {
-//     const { email, password } = req.body
-//     try {
-//         const user = await User.findOne({ email })
-//         if (!user) {
-//             return res.status(400).json({ message: "Invalid credentials" })
-//         }
 
-//         const ispass = await bcrypt.compare(password, user.password)
+export const login = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return sendErrorResponse(res, STATUS.BAD_REQUEST, "Email and password are required.");
+        }
 
-//         if(!ispass) return res.status(400).json({ message: "Invalid credentials" })
-        
-//         generatetoken(user._id , res) 
+        const result = await userService.loginUser({ email, password });
 
-//         res.status(200).json({
-//             _id : user._id,
-//             fullname: user.fullname,
-//             email: user.email,
-//             profilepic: user.profilepic,
-//         })
-//     } catch (e) {
-//         console.log("error in login authController", e.message)
-//         return res.status(500).json({ message: "Internal server error" })
-//     }
-// }
+        if (!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
+        }
 
-// ✅ Step 1: Login - verify email & password, send OTP
-export const verifyPasswordAndSendOtp = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+        res.cookie("accessToken", result.data.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: env.JWT_ACCESS_EXPIRES_IN 
+        });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+        res.cookie("refreshToken", result.data.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: env.JWT_REFRESH_EXPIRES_IN 
+        });
 
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-    console.log(`OTP for ${email} :-`, otp);
-    user.otp = otp;
-    user.otpExpiry = expiry;
-    await user.save();
-
-    // Send OTP to user's email
-    await sendEmail(user.email, "Login OTP", `Your OTP is ${otp}`);
-
-    res.status(200).json({ message: "OTP sent to your email" });
-  } catch (error) {
-    console.log("Login error:", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+        return sendResponse(res, STATUS.OK, "Login successful", res.data.user);
+    } catch (error) {
+        next(error);
+    }
 };
 
 // ✅ Step 2: Verify OTP and Login

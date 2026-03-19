@@ -79,3 +79,20 @@ export const loginUser = async ({ email, password }) => {
         };
     }
 };
+
+export const logoutUser = async (userId) => {
+    try{
+        await userRepo.clearRefreshToken(userId);
+        return {
+            success: true,
+            message: "Logout successful"
+        };
+    } catch (error) {
+        return {
+            success: false,
+            statusCode: STATUS.INTERNAL_ERROR,
+            message: "Error in logout",
+            error: error.message
+        }
+    };
+};

@@ -16,3 +16,7 @@ export const getUserById = async (id) => {
 export const updateUser = async (id, updateData) => {
     return await User.findByIdAndUpdate(id, updateData, { new: true });
 };
+
+export const clearRefreshToken = async (id) => {
+    return await User.findByIdAndUpdate(id, { refreshToken: null }, { new: true });
+}

@@ -55,46 +55,22 @@ export const login = async (req, res, next) => {
     }
 };
 
-// ✅ Step 2: Verify OTP and Login
-export const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (
-      !user ||
-      user.otp !== otp ||
-      !user.otpExpiry ||
-      user.otpExpiry < new Date()
-    ) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
-
-    user.otp = null;
-    user.otpExpiry = null;
-    await user.save();
-
-    generatetoken(user._id, res);
-
-    res.status(200).json({
-      _id: user._id,
-      fullname: user.fullname,
-      email: user.email,
-      profilepic: user.profilepic,
-    });
-  } catch (error) {
-    console.log("OTP verify error:", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-
 export const logout = async (req, res) => {
     try {
-        res.cookie("jwt", "", {maxAge:0})
-        res.status(200).json({message : "Logout succcessfully"})
-    } catch (e) {
-        console.log("error in logout authController", e.message)
-        return res.status(500).json({ message: "Internal server error" })
+        const { _id: userId } = req.user;
+
+        const result = await userService.logoutUser(userId);
+
+        if (!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
+        }
+
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+
+        return sendResponse(res, STATUS.OK, "Logout successful");
+    } catch (error) {
+        next(error);
     }
 }
 

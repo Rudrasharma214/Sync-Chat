@@ -4,7 +4,7 @@ import { getUserById } from "../repositories/user.repositories.js";
 import STATUS from "../constant/statusCodes.js";
 import { sendErrorResponse } from "../utils/response.js";
 
-export const protectRoute = async (req,res,next) => {
+export const authenticate = async (req,res,next) => {
     try {
         const token = req.cookies.jwt
 
@@ -27,7 +27,7 @@ export const protectRoute = async (req,res,next) => {
         req.user = user
         next();
     } catch (e) {
-        logger.log("error in protectRoute in middleware", e.message)
+        logger.log("error in authenticate in middleware", e.message)
         return sendErrorResponse(res, STATUS.INTERNAL_ERROR, "Internal server error")
     }
 }

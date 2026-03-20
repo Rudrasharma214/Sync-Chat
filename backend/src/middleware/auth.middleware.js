@@ -1,26 +1,26 @@
 import jwt from "jsonwebtoken";
 import logger from "../config/logger.js";
 import { getUserById } from "../repositories/user.repositories.js";
-import STATUS from "../constant/statusCodes.js";
+import { STATUS } from "../constant/statusCodes.js";
 import { sendErrorResponse } from "../utils/response.js";
 
-export const authenticate = async (req,res,next) => {
+export const authenticate = async (req, res, next) => {
     try {
-        const token = req.cookies.jwt
+        const token = req.cookies.accessToken || req.cookies.jwt
 
-        if(!token) {
+        if (!token) {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "No token provided")
         }
-        
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-        if(!decoded)  {
-            return sendErrorResponse(res, STATUS.UNAUTHORIZED, "Invalid token") 
+        if (!decoded) {
+            return sendErrorResponse(res, STATUS.UNAUTHORIZED, "Invalid token")
         }
 
         const user = await getUserById(decoded.userId)
 
-        if(!user) {
+        if (!user) {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "User not found")
         }
 

@@ -3,6 +3,7 @@ import * as userRepo from "../repositories/user.repositories";
 import { hashPassword } from "../utils/password";
 import { generateRefreshToken, generateToken } from "../utils/token.js";
 
+// Register a new user
 export const createUser = async ({fullname, email, password}) => {
     try {
         const existingUser = await userRepo.getUserByEmail(email)
@@ -34,6 +35,7 @@ export const createUser = async ({fullname, email, password}) => {
     }
 };
 
+// Login an existing user
 export const loginUser = async ({ email, password }) => {
     try {
         const user = await userRepo.getUserByEmail(email);
@@ -80,6 +82,7 @@ export const loginUser = async ({ email, password }) => {
     }
 };
 
+// Logout the current user
 export const logoutUser = async (userId) => {
     try{
         await userRepo.clearRefreshToken(userId);
@@ -95,4 +98,42 @@ export const logoutUser = async (userId) => {
             error: error.message
         }
     };
+};
+
+// Refresh access token using refresh token
+export const refreshToken = async (userId, refreshToken) => {
+    try {
+        const user = await userRepo.getUserById(userId);
+        if (!user) {
+            return {
+                success: false,
+                statusCode: STATUS.NOT_FOUND,
+                message: "User not found"
+            };
+        }
+        const isValid = await userRepo.verifyRefreshToken(userId, refreshToken);
+        if (!isValid) {
+            return {
+                success: false,
+                statusCode: STATUS.UNAUTHORIZED,
+                message: "Invalid refresh token"
+            };
+        }
+
+        const accessToken = generateToken(user);
+        return {
+            success: true,
+            message: "Token refreshed successfully",
+            data: {
+                accessToken
+            }
+        };
+    } catch (error) {
+        return {
+            success: false,
+            statusCode: STATUS.INTERNAL_ERROR,
+            message: "Error in refreshing token",
+            error: error.message
+        };
+    }
 };

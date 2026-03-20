@@ -2,7 +2,8 @@ import * as userService from "../services/user.service.js"
 import STATUS from "../constant/statusCodes.js";
 import { sendResponse, sendErrorResponse } from '../utils/response.js'
 import env from "../config/env.js";
- 
+
+// Register a new user
 export const signup = async (req, res, next) => {
     try{
         const {fullname, email, password} = req.body
@@ -22,6 +23,7 @@ export const signup = async (req, res, next) => {
     }
 }
 
+// Login an existing user
 export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -55,6 +57,7 @@ export const login = async (req, res, next) => {
     }
 };
 
+// Logout the current user
 export const logout = async (req, res) => {
     try {
         const { _id: userId } = req.user;
@@ -72,35 +75,33 @@ export const logout = async (req, res) => {
     } catch (error) {
         next(error);
     }
-}
+};
 
-export const updateProfile = async (req, res) => {
+// Refresh access token using refresh token
+export const refreshToken = async (req, res, next) => {
     try {
-        const {profilepic} = req.body
-        const userId = req.user._id
+        const userId = req.user._id;
+        const refreshToken = req.cookies.refreshToken;
 
-        if(!userId) {
-            return res.status(400).json({ message: "Profile Pic is required." })
+        if (!refreshToken) {
+            return sendErrorResponse(res, STATUS.UNAUTHORIZED, "No refresh token provided");
         }
 
-        const uploadResponse = await cloudinary.uploader.upload(profilepic) 
+        const result = await userService.refreshToken(userId, refreshToken);
 
-        const updateduser = await User.findByIdAndUpdate(userId,{
-            profilepic : uploadResponse.secure_url
-        },{new:true})
+        if (!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
+        }
 
-        res.status(200).json(updateduser)
-    } catch (e) {
-        console.log("error in updateProfile authController", e.message)
-        return res.status(500).json({ message: "Internal server error" })
+        res.cookie("accessToken", result.data.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: env.JWT_ACCESS_EXPIRES_IN 
+        });
+
+        return sendResponse(res, STATUS.OK, "Token refreshed successfully", { accessToken: result.data.accessToken });
+    } catch (error) {
+        next(error);
     }
-}
-
-export const checkAuth = async (req, res) => {
-    try {
-        res.status(200).json(req.user)
-    } catch (e) {
-        console.log("error in chectAuth authController", e.message)
-        return res.status(500).json({ message: "Internal server error" })
-    }
-}
+};

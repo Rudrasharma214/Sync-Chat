@@ -17,6 +17,11 @@ export const updateUser = async (id, updateData) => {
     return await User.findByIdAndUpdate(id, updateData, { new: true });
 };
 
+export const verifyRefreshToken = async (userId, refreshToken) => {
+    const user = await User.findById(userId);
+    return user && user.refreshToken === refreshToken;
+};
+
 export const clearRefreshToken = async (id) => {
     return await User.findByIdAndUpdate(id, { refreshToken: null }, { new: true });
 }

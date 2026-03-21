@@ -1,19 +1,19 @@
-import * as userService from "../services/user.service.js"
-import STATUS from "../constant/statusCodes.js";
+import * as authService from "../services/auth.service.js";
+import { STATUS } from "../constant/statusCodes.js";
 import { sendResponse, sendErrorResponse } from '../utils/response.js'
 import env from "../config/env.js";
 
 // Register a new user
 export const signup = async (req, res, next) => {
-    try{
-        const {fullname, email, password} = req.body
-        if(!fullname || !email || !password) {
+    try {
+        const { fullname, email, password } = req.body
+        if (!fullname || !email || !password) {
             return sendErrorResponse(res, STATUS.BAD_REQUEST, "All fields are required.")
         }
 
-        const result = await userService.createUser({fullname, email, password})
+        const result = await authService.createUser({ fullname, email, password })
 
-        if(!result.success) {
+        if (!result.success) {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
@@ -31,7 +31,7 @@ export const login = async (req, res, next) => {
             return sendErrorResponse(res, STATUS.BAD_REQUEST, "Email and password are required.");
         }
 
-        const result = await userService.loginUser({ email, password });
+        const result = await authService.loginUser({ email, password });
 
         if (!result.success) {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
@@ -41,28 +41,28 @@ export const login = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: env.JWT_ACCESS_EXPIRES_IN 
+            maxAge: env.JWT_ACCESS_EXPIRES_IN
         });
 
         res.cookie("refreshToken", result.data.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: env.JWT_REFRESH_EXPIRES_IN 
+            maxAge: env.JWT_REFRESH_EXPIRES_IN
         });
 
-        return sendResponse(res, STATUS.OK, "Login successful", res.data.user);
+        return sendResponse(res, STATUS.OK, "Login successful", result.data.user);
     } catch (error) {
         next(error);
     }
 };
 
 // Logout the current user
-export const logout = async (req, res) => {
+export const logout = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
 
-        const result = await userService.logoutUser(userId);
+        const result = await authService.logoutUser(userId);
 
         if (!result.success) {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
@@ -87,7 +87,7 @@ export const refreshToken = async (req, res, next) => {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "No refresh token provided");
         }
 
-        const result = await userService.refreshToken(userId, refreshToken);
+        const result = await authService.refreshToken(userId, refreshToken);
 
         if (!result.success) {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
@@ -97,10 +97,39 @@ export const refreshToken = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: env.JWT_ACCESS_EXPIRES_IN 
+            maxAge: env.JWT_ACCESS_EXPIRES_IN
         });
 
         return sendResponse(res, STATUS.OK, "Token refreshed successfully", { accessToken: result.data.accessToken });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Change password for authenticated user
+export const changePassword = async (req, res, next) => {
+    try {
+        const { _id: userId } = req.user;
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return sendErrorResponse(res, STATUS.BAD_REQUEST, "Current password and new password are required.");
+        }
+
+        if (newPassword.length < 6) {
+            return sendErrorResponse(res, STATUS.BAD_REQUEST, "New password must be at least 6 characters long.");
+        }
+
+        const result = await authService.changePassword({ userId, currentPassword, newPassword });
+
+        if (!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
+        }
+
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+
+        return sendResponse(res, STATUS.OK, "Password changed successfully");
     } catch (error) {
         next(error);
     }

@@ -1,14 +1,14 @@
 import { STATUS } from "../constant/statusCodes.js";
 import * as userRepo from "../repositories/user.repositories.js";
-import { hashPassword } from "../utils/password.js";
+import { hashPassword, verifyPassword } from "../utils/password.js";
 import { generateRefreshToken, generateToken } from "../utils/token.js";
 
 // Register a new user
-export const createUser = async ({fullname, email, password}) => {
+export const createUser = async ({ fullname, email, password }) => {
     try {
         const existingUser = await userRepo.getUserByEmail(email)
 
-        if(existingUser) {
+        if (existingUser) {
             return {
                 success: false,
                 statusCode: STATUS.CONFLICT,
@@ -47,7 +47,7 @@ export const loginUser = async ({ email, password }) => {
             };
         }
 
-        const isMatch = await userRepo.comparePassword(password, user.password);
+        const isMatch = await verifyPassword(password, user.password);
         if (!isMatch) {
             return {
                 success: false,
@@ -58,6 +58,7 @@ export const loginUser = async ({ email, password }) => {
 
         const accessToken = generateToken(user);
         const refreshToken = generateRefreshToken(user);
+        await userRepo.updateUser(user._id, { refreshToken });
 
         return {
             success: true,
@@ -82,9 +83,56 @@ export const loginUser = async ({ email, password }) => {
     }
 };
 
+// Change password for the authenticated user
+export const changePassword = async ({ userId, currentPassword, newPassword }) => {
+    try {
+        const user = await userRepo.getUserById(userId);
+        if (!user) {
+            return {
+                success: false,
+                statusCode: STATUS.NOT_FOUND,
+                message: "User not found"
+            };
+        }
+
+        const isCurrentPasswordValid = await verifyPassword(currentPassword, user.password);
+        if (!isCurrentPasswordValid) {
+            return {
+                success: false,
+                statusCode: STATUS.UNAUTHORIZED,
+                message: "Current password is incorrect"
+            };
+        }
+
+        const isSamePassword = await verifyPassword(newPassword, user.password);
+        if (isSamePassword) {
+            return {
+                success: false,
+                statusCode: STATUS.BAD_REQUEST,
+                message: "New password must be different from current password"
+            };
+        }
+
+        const hashedPassword = await hashPassword(newPassword);
+        await userRepo.updateUser(userId, { password: hashedPassword, refreshToken: null });
+
+        return {
+            success: true,
+            message: "Password changed successfully"
+        };
+    } catch (error) {
+        return {
+            success: false,
+            statusCode: STATUS.INTERNAL_ERROR,
+            message: "Error in changing password",
+            error: error.message
+        };
+    }
+};
+
 // Logout the current user
 export const logoutUser = async (userId) => {
-    try{
+    try {
         await userRepo.clearRefreshToken(userId);
         return {
             success: true,

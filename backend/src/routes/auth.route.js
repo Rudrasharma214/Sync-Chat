@@ -32,6 +32,13 @@ router.post("/logout", authenticate, authController.logout);
  */
 router.post("/refresh-token", authController.refreshToken);
 
+/**
+ * @route PATCH /api/auth/change-password
+ * @desc Change password for authenticated user
+ * @access Private
+ */
+router.patch("/change-password", authenticate, authController.changePassword);
+
 export default router;
 
 

@@ -1,6 +1,6 @@
 import { STATUS } from "../constant/statusCodes.js";
-import * as userRepo from "../repositories/user.repositories";
-import { hashPassword } from "../utils/password";
+import * as userRepo from "../repositories/user.repositories.js";
+import { hashPassword } from "../utils/password.js";
 import { generateRefreshToken, generateToken } from "../utils/token.js";
 
 // Register a new user

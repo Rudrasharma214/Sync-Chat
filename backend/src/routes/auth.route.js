@@ -30,7 +30,7 @@ router.post("/logout", authenticate, authController.logout);
  * @desc Refresh access token using refresh token
  * @access Private
  */
-router.post("/refresh-token", authController.refreshToken);
+router.post("/refresh-token", authenticate, authController.refreshToken);
 
 /**
  * @route PATCH /api/auth/change-password

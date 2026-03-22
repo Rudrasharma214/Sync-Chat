@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.route.js";
-import chatRoutes from "./routes/chat.route.js";
+import notificationRoutes from "./routes/notification.route.js";
 import { app } from "./config/socket.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { corsOptions } from "./config/corsOptions.js";
@@ -16,7 +16,7 @@ app.use(cookieParser());
 app.use(corsOptions);
 
 app.use("/api/auth", authRoutes);
-app.use("/api/chat", chatRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 app.use(errorHandler)

@@ -17,6 +17,30 @@ export const getMessageStatusesByUserId = async (userId) => {
     return await MessageStatus.find({ userId }).sort({ updatedAt: -1 });
 };
 
+export const getUnreadCountByUserId = async (userId) => {
+    return await MessageStatus.countDocuments({ userId, status: "unread" });
+};
+
+export const getUnreadStatusesByUserId = async (userId, limit = 20) => {
+    return await MessageStatus.find({ userId, status: "unread" })
+        .sort({ updatedAt: -1 })
+        .limit(limit)
+        .populate({
+            path: "messageId",
+            select: "text image messageType senderId conversationId createdAt",
+            populate: [
+                {
+                    path: "senderId",
+                    select: "fullname email profilepic",
+                },
+                {
+                    path: "conversationId",
+                    select: "type participants groupId lastMessageAt",
+                },
+            ],
+        });
+};
+
 export const updateMessageStatus = async (id, updateData) => {
     return await MessageStatus.findByIdAndUpdate(id, updateData, { new: true });
 };

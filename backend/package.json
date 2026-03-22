@@ -12,24 +12,23 @@
   "type": "module",
   "license": "ISC",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "argon2": "^0.44.0",
-    "axios": "^1.9.0",
-    "bcryptjs": "^2.4.3",
+    "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
     "chatty": "file:..",
-    "cloudinary": "^2.5.1",
+    "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.1",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.8.1",
-    "nodemailer": "^7.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.3.1",
+    "nodemailer": "^8.0.3",
     "sib-api-v3-sdk": "^8.5.0",
-    "socket.io": "^4.8.1",
+    "socket.io": "^4.8.3",
     "winston": "^3.19.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.14"
   }
 }

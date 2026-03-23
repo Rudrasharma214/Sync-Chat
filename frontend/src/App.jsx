@@ -66,10 +66,6 @@ const App = () => {
           path="/profile"
           element={authUser ? <Profile /> : <Navigate to="/login" />}
         />
-        <Route
-          path="/aichat"
-          element={authUser ? <AIChatPage /> : <Navigate to="/login" />}
-        />
       </Routes>
       <Toaster />
     </div>

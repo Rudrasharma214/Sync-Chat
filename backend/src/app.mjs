@@ -5,6 +5,7 @@ import cors from "cors";
 
 import authRoutes from "./routes/auth.route.js";
 import notificationRoutes from "./routes/notification.route.js";
+import conversationRoutes from "./routes/conversation.route.js";
 import { app } from "./config/socket.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { corsOptions } from "./config/corsOptions.js";
@@ -18,6 +19,7 @@ app.use(cors(corsOptions));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/conversations", conversationRoutes);
 
 
 app.use(errorHandler)

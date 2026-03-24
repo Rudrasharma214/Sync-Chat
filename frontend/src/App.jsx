@@ -10,8 +10,6 @@ import { Loader } from "lucide-react";
 
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
-import { useAuthStore } from "./store/useAuthStore";
-import { useThemeStore } from "./store/useThemeStore";
 
 //-----------------------------------------------
 
@@ -19,19 +17,14 @@ import { useThemeStore } from "./store/useThemeStore";
 
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
-import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import SettingsP from "./pages/SettingsP";
-import AIChatPage from "./pages/AIChatPage";
 
 //----------------------------------------------
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth,onlineUsers } = useAuthStore();
-  const { theme } = useThemeStore();
+  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   //  console.log({onlineUsers})
 
-  
+
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -45,27 +38,19 @@ const App = () => {
     );
 
   return (
-    <div data-theme={theme} >
+    <div>
       <Navbar />
 
       <Routes>
-        <Route
-          path="/"
-          element={authUser ? <Home /> : <Navigate to="/login" />}
-        />
         <Route
           path="/signup"
           element={<Signup />}
         />
         <Route
           path="/login"
-          element={!authUser ? <Login /> : <Navigate to="/" />}
+          element={!authUser ? <Login /> : <Navigate to="/signup" />}
         />
-        <Route path="/settings" element={<SettingsP />} />
-        <Route
-          path="/profile"
-          element={authUser ? <Profile /> : <Navigate to="/login" />}
-        />
+        <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
       <Toaster />
     </div>

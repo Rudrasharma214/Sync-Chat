@@ -1,5 +1,4 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/useAuthStore";
 import {
   LogOut,
   LogIn,
@@ -12,7 +11,6 @@ import {
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, authUser } = useAuthStore();
 
   const handleLogout = async () => {
     await logout();

@@ -1,7 +1,6 @@
 //-----------------packages----------------------
 
-import React, { useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
 import { Loader } from "lucide-react";
 
 //-----------------------------------------------
@@ -10,50 +9,41 @@ import { Loader } from "lucide-react";
 
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 //-----------------------------------------------
 
-//--------------------pages----------------------
+//--------------------routes---------------------
 
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
+import AppRoutes from "./routes/AppRoutes";
 
 //----------------------------------------------
 
-const App = () => {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
-  //  console.log({onlineUsers})
+const AppContent = () => {
+  const { isCheckingAuth } = useAuth();
 
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-  // console.log({ authUser });
-
-  if (isCheckingAuth && !authUser)
+  if (isCheckingAuth) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader className="size-10 animate-spin" />
       </div>
     );
+  }
 
   return (
     <div>
       <Navbar />
-
-      <Routes>
-        <Route
-          path="/signup"
-          element={<Signup />}
-        />
-        <Route
-          path="/login"
-          element={!authUser ? <Login /> : <Navigate to="/signup" />}
-        />
-        <Route path="/" element={<Navigate to="/login" />} />
-      </Routes>
+      <AppRoutes />
       <Toaster />
     </div>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

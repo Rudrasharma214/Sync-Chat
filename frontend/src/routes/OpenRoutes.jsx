@@ -4,10 +4,10 @@ import { useAuth } from "../context/AuthContext";
 import { Loader } from "lucide-react";
 
 /**
- * ProtectedRoute component for authenticated-only routes
- * Redirects to login if user is not authenticated
+ * OpenRoute component for public routes (auth pages)
+ * Redirects to chat if user is already authenticated
  */
-const ProtectedRoute = ({ children }) => {
+const OpenRoute = ({ children }) => {
     const { authUser, isCheckingAuth } = useAuth();
 
     if (isCheckingAuth) {
@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    return authUser ? children : <Navigate to="/login" replace />;
+    return !authUser ? children : <Navigate to="/" replace />;
 };
 
-export default ProtectedRoute;
+export default OpenRoute;

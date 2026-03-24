@@ -1,12 +1,13 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Loader } from "lucide-react";
 
 /**
- * OpenRoute component for public routes (auth pages)
- * Redirects to chat if user is already authenticated
+ * ProtectedRoute component for authenticated-only routes
+ * Redirects to login if user is not authenticated
  */
-const OpenRoute = ({ children }) => {
+const ProtectedRoute = ({ children }) => {
     const { authUser, isCheckingAuth } = useAuth();
 
     if (isCheckingAuth) {
@@ -17,7 +18,7 @@ const OpenRoute = ({ children }) => {
         );
     }
 
-    return !authUser ? children : <Navigate to="/" replace />;
+    return authUser ? children : <Navigate to="/login" replace />;
 };
 
-export default OpenRoute;
+export default ProtectedRoute;

@@ -9,6 +9,7 @@ import { Loader } from "lucide-react";
 
 import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 //-----------------------------------------------
 
@@ -23,8 +24,8 @@ const AppContent = () => {
 
   if (isCheckingAuth) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
+      <div className="theme-bg theme-text flex h-screen items-center justify-center">
+        <Loader className="size-10 animate-spin text-amber-500" />
       </div>
     );
   }
@@ -39,9 +40,11 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

@@ -60,26 +60,26 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="theme-bg min-h-screen">
       <Navbar />
       <div className="grid min-h-[calc(100vh-4rem)] w-full lg:grid-cols-2">
         <div className="relative flex items-center justify-center px-6 py-16 sm:px-10 lg:px-14">
-          <div className="relative w-full max-w-md rounded-3xl border border-slate-200/80 bg-white/90 p-8 shadow-2xl shadow-slate-300/30 backdrop-blur sm:p-10">
+          <div className="theme-border theme-surface relative w-full max-w-md rounded-3xl border p-8 shadow-2xl shadow-slate-900/10 backdrop-blur sm:p-10">
             <div className="mb-8 text-center">
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900">Create Account</h1>
-              <p className="mt-2 text-sm text-slate-600">Join Sync-Chat and start messaging in seconds.</p>
+              <h1 className="theme-text mt-4 text-3xl font-semibold tracking-tight">Create Account</h1>
+              <p className="theme-muted mt-2 text-sm">Join Sync-Chat and start messaging in seconds.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Full Name</label>
+                <label className="theme-muted mb-2 block text-sm font-medium">Full Name</label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <User className="h-5 w-5 text-slate-400" />
+                    <User className="theme-muted h-5 w-5" />
                   </div>
                   <input
                     type="text"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-11 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
+                    className="theme-input w-full rounded-2xl border px-4 py-3 pl-11 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
                     placeholder="John Doe"
                     value={formData.fullname}
                     onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
@@ -89,14 +89,14 @@ const Signup = () => {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Email</label>
+                <label className="theme-muted mb-2 block text-sm font-medium">Email</label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <Mail className="h-5 w-5 text-slate-400" />
+                    <Mail className="theme-muted h-5 w-5" />
                   </div>
                   <input
                     type="email"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-11 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
+                    className="theme-input w-full rounded-2xl border px-4 py-3 pl-11 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -106,14 +106,14 @@ const Signup = () => {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Password</label>
+                <label className="theme-muted mb-2 block text-sm font-medium">Password</label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <Lock className="h-5 w-5 text-slate-400" />
+                    <Lock className="theme-muted h-5 w-5" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pl-11 pr-11 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
+                    className="theme-input w-full rounded-2xl border px-4 py-3 pl-11 pr-11 outline-none transition focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -121,7 +121,7 @@ const Signup = () => {
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 transition hover:text-slate-700"
+                    className="theme-muted absolute inset-y-0 right-0 flex items-center pr-4 transition hover:text-amber-500"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeClosed className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -144,7 +144,7 @@ const Signup = () => {
                 )}
               </button>
 
-              <p className="text-center text-sm text-slate-600">
+              <p className="theme-muted text-center text-sm">
                 Already have an account?{" "}
                 <Link to="/login" className="font-semibold text-amber-600 hover:text-amber-700">
                   Log in

@@ -1,1 +1,64 @@
 @import "tailwindcss";
+
+:root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-soft: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #475569;
+    --input: #ffffff;
+    color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+    --bg: #000000;
+    --surface: #111827;
+    --surface-soft: #0f172a;
+    --border: #1f2937;
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+    --input: #0f172a;
+    color-scheme: dark;
+}
+
+body {
+    min-height: 100vh;
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-bg {
+    background-color: var(--bg);
+}
+
+.theme-surface {
+    background-color: var(--surface);
+}
+
+.theme-surface-soft {
+    background-color: var(--surface-soft);
+}
+
+.theme-border {
+    border-color: var(--border);
+}
+
+.theme-text {
+    color: var(--text);
+}
+
+.theme-muted {
+    color: var(--muted);
+}
+
+.theme-input {
+    background-color: var(--input);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.theme-input::placeholder {
+    color: var(--muted);
+}

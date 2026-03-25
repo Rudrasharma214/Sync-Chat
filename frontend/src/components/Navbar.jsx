@@ -1,12 +1,14 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, LogIn, MessageSquare, UserPlus } from "lucide-react";
+import { LogOut, LogIn, Moon, Sun, UserPlus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { authUser, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const handleLogout = async () => {
     const result = await logout();
@@ -17,16 +19,27 @@ const Navbar = () => {
 
   const isLoginPage = location.pathname === "/login";
   const isSignupPage = location.pathname === "/signup";
+  const headerBgClass = isDarkMode ? "bg-black/95" : "bg-white/95";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header className={`theme-border sticky top-0 z-40 border-b backdrop-blur ${headerBgClass}`}>
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2.5 transition hover:opacity-80">
-          
           <h1 className="text-lg font-bold text-amber-500">Sync-Chat</h1>
         </Link>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="theme-border theme-text inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition hover:border-amber-500/70 hover:text-amber-500"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            title={isDarkMode ? "Switch to light theme" : "Switch to dark theme"}
+          >
+            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <span>{isDarkMode ? "Light" : "Dark"}</span>
+          </button>
+
           {!authUser && !isLoginPage && (
             <Link
               to="/login"

@@ -41,14 +41,14 @@ export const login = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: env.JWT_ACCESS_EXPIRES_IN
+            maxAge: env.JWT_ACCESS_COOKIE_MAX_AGE
         });
 
         res.cookie("refreshToken", result.data.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: env.JWT_REFRESH_EXPIRES_IN
+            maxAge: env.JWT_REFRESH_COOKIE_MAX_AGE
         });
 
         return sendResponse(res, STATUS.OK, "Login successful", result.data.user);
@@ -97,7 +97,7 @@ export const refreshToken = async (req, res, next) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: env.JWT_ACCESS_EXPIRES_IN
+            maxAge: env.JWT_ACCESS_COOKIE_MAX_AGE
         });
 
         return sendResponse(res, STATUS.OK, "Token refreshed successfully", { accessToken: result.data.accessToken });

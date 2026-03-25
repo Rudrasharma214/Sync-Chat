@@ -8,7 +8,6 @@ import { Loader } from "lucide-react";
 //----------------components---------------------
 
 import { Toaster } from "react-hot-toast";
-import Navbar from "./components/Navbar";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 //-----------------------------------------------
@@ -32,7 +31,6 @@ const AppContent = () => {
 
   return (
     <div>
-      <Navbar />
       <AppRoutes />
       <Toaster />
     </div>

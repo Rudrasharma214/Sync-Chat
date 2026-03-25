@@ -64,7 +64,7 @@ const Signup = () => {
       <Navbar />
       <div className="grid min-h-[calc(100vh-4rem)] w-full lg:grid-cols-2">
         <div className="relative flex items-center justify-center px-6 py-16 sm:px-10 lg:px-14">
-          <div className="theme-border theme-surface relative w-full max-w-md rounded-3xl border p-8 shadow-2xl shadow-slate-900/10 backdrop-blur sm:p-10">
+          <div className="theme-surface relative w-full max-w-md sm:p-10">
             <div className="mb-8 text-center">
               <h1 className="theme-text mt-4 text-3xl font-semibold tracking-tight">Create Account</h1>
               <p className="theme-muted mt-2 text-sm">Join Sync-Chat and start messaging in seconds.</p>

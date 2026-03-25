@@ -27,7 +27,6 @@ const Navbar = () => {
             title={isDarkMode ? "Switch to light theme" : "Switch to dark theme"}
           >
             {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            <span>{isDarkMode ? "Light" : "Dark"}</span>
           </button>
 
           {!isLoginPage && (

@@ -1,21 +1,11 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, LogIn, Moon, Sun, UserPlus } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { Link, useLocation } from "react-router-dom";
+import { LogIn, Moon, Sun, UserPlus } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { authUser, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
-
-  const handleLogout = async () => {
-    const result = await logout();
-    if (result?.success) {
-      navigate("/login");
-    }
-  };
 
   const isLoginPage = location.pathname === "/login";
   const isSignupPage = location.pathname === "/signup";
@@ -40,7 +30,7 @@ const Navbar = () => {
             <span>{isDarkMode ? "Light" : "Dark"}</span>
           </button>
 
-          {!authUser && !isLoginPage && (
+          {!isLoginPage && (
             <Link
               to="/login"
               className="inline-flex items-center gap-2 rounded-xl border border-amber-500/60 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
@@ -50,7 +40,7 @@ const Navbar = () => {
             </Link>
           )}
 
-          {!authUser && !isSignupPage && (
+          {!isSignupPage && (
             <Link
               to="/signup"
               className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-600"
@@ -58,17 +48,6 @@ const Navbar = () => {
               <UserPlus className="h-4 w-4" />
               <span>Sign Up</span>
             </Link>
-          )}
-
-          {authUser && (
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-600"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
           )}
         </div>
       </div>

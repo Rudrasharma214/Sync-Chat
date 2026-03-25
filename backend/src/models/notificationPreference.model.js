@@ -33,7 +33,6 @@ const notificationPreferenceSchema = new mongoose.Schema(
     }
 );
 
-notificationPreferenceSchema.index({ userId: 1 }, { unique: true });
 notificationPreferenceSchema.index({ notificationsEnabled: 1, updatedAt: -1 });
 
 const NotificationPreference = mongoose.model(

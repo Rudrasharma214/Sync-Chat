@@ -5,6 +5,7 @@ import {
     LogOut,
     MessageCircle,
     Mic,
+    Moon,
     MoreVertical,
     Paperclip,
     Phone,
@@ -12,10 +13,12 @@ import {
     Send,
     Settings,
     Smile,
+    Sun,
     Users,
     Video,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
 const dummyConversations = [
     {
@@ -81,6 +84,7 @@ const dummyConversations = [
 
 const ChatDashboard = () => {
     const { isDarkMode, toggleTheme } = useTheme();
+    const navigate = useNavigate();
     const [activeConversationId, setActiveConversationId] = useState(dummyConversations[0].id);
     const menuIconBtnClass =
         "inline-flex h-9 w-9 items-center justify-center rounded-xl border theme-border theme-muted bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500";
@@ -91,11 +95,11 @@ const ChatDashboard = () => {
     );
 
     return (
-        <main className="theme-bg min-h-screen px-3 py-3 sm:px-6 sm:py-6">
-            <div className="theme-border mx-auto flex h-[calc(100vh-1.5rem)] w-full max-w-[1300px] overflow-hidden rounded-[28px] border bg-[linear-gradient(120deg,var(--surface)_0%,var(--surface-soft)_100%)] sm:h-[calc(100vh-3rem)]">
+        <main className="theme-bg h-screen w-screen overflow-hidden">
+            <div className="theme-border flex h-full w-full overflow-hidden border bg-[linear-gradient(120deg,var(--surface)_0%,var(--surface-soft)_100%)]">
                 <aside className="flex w-20 flex-col items-center justify-between border-r theme-border bg-[var(--sidebar)] py-4 sm:w-24 sm:py-6">
-                    <div className="space-y-4">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-slate-900 shadow-sm shadow-amber-500/30">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-slate-900 shadow-sm shadow-amber-500/30">
                             <MessageCircle className="h-5 w-5" />
                         </div>
 
@@ -127,13 +131,23 @@ const ChatDashboard = () => {
                         </button>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="flex flex-col items-center gap-3">
                         <button
                             type="button"
                             className={menuIconBtnClass}
                             onClick={toggleTheme}
                             aria-label="Toggle theme"
                             title={isDarkMode ? "Switch to light" : "Switch to dark"}
+                        >
+                            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        </button>
+
+                        <button
+                            type="button"
+                            className={menuIconBtnClass}
+                            onClick={() => navigate("/settings")}
+                            aria-label="Settings"
+                            title="Settings"
                         >
                             <Settings className="h-4 w-4" />
                         </button>
@@ -170,8 +184,8 @@ const ChatDashboard = () => {
                                         key={conversation.id}
                                         onClick={() => setActiveConversationId(conversation.id)}
                                         className={`w-full rounded-2xl border p-3 text-left transition ${isActive
-                                                ? "border-amber-400/70 bg-amber-500/10"
-                                                : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
+                                            ? "border-amber-400/70 bg-amber-500/10"
+                                            : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
                                             }`}
                                     >
                                         <div className="flex items-start gap-3">

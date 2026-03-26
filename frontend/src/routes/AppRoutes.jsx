@@ -5,6 +5,7 @@ import Signup from "../pages/Signup";
 import Login from "../pages/Login";
 import Welcome from "../pages/Welcome";
 import ChatDashboard from "../pages/ChatDashboard";
+import Settings from "../pages/Settings";
 import OpenRoute from "./OpenRoutes";
 import ProtectedRoute from "./ProtectedRoutes";
 
@@ -41,6 +42,15 @@ const AppRoutes = () => {
                 element={
                     <ProtectedRoute>
                         <ChatDashboard />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/settings"
+                element={
+                    <ProtectedRoute>
+                        <Settings />
                     </ProtectedRoute>
                 }
             />

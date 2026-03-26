@@ -4,10 +4,13 @@
     --bg: #ffffff;
     --surface: #ffffff;
     --surface-soft: #f1f5f9;
+    --sidebar: #f8fafc;
     --border: #e2e8f0;
     --text: #0f172a;
     --muted: #475569;
     --input: #ffffff;
+    --bubble-mine: #f59e0b;
+    --bubble-their: #eef2ff;
     color-scheme: light;
 }
 
@@ -15,10 +18,13 @@
     --bg: #000000;
     --surface: #000000;
     --surface-soft: #0f172a;
+    --sidebar: #111111;
     --border: #181818;
     --text: #e5e7eb;
     --muted: #94a3b8;
     --input: #0f0f0f;
+    --bubble-mine: #f59e0b;
+    --bubble-their: #111827;
     color-scheme: dark;
 }
 

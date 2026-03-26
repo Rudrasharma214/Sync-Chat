@@ -53,7 +53,7 @@ const Signup = () => {
     const result = await signup(formData.fullname, formData.email, formData.password);
     if (result.success) {
       toast.success("Account created successfully");
-      navigate("/");
+      navigate("/chat");
     } else {
       toast.error(result.message || "Signup failed");
     }

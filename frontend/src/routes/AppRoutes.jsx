@@ -4,7 +4,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Signup from "../pages/Signup";
 import Login from "../pages/Login";
 import Welcome from "../pages/Welcome";
+import ChatDashboard from "../pages/ChatDashboard";
 import OpenRoute from "./OpenRoutes";
+import ProtectedRoute from "./ProtectedRoutes";
 
 /**
  * AppRoutes component
@@ -34,7 +36,14 @@ const AppRoutes = () => {
             />
 
             {/* Protected Routes - Only accessible when authenticated */}
-            {/* Add protected routes here as you build chat features */}
+            <Route
+                path="/chat"
+                element={
+                    <ProtectedRoute>
+                        <ChatDashboard />
+                    </ProtectedRoute>
+                }
+            />
 
             {/* Catch-all - Redirect to welcome */}
             <Route path="*" element={<Navigate to="/" replace />} />

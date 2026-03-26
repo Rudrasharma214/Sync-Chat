@@ -30,8 +30,16 @@ const Welcome = () => {
 
                         <div className="mt-8 flex gap-3">
                             <Link
-                                to="/signup"
+                                to="/chat"
                                 className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-amber-600"
+                            >
+                                <MessageSquare className="h-4 w-4" />
+                                Open Chat
+                            </Link>
+
+                            <Link
+                                to="/signup"
+                                className="inline-flex items-center gap-2 rounded-xl border border-amber-500/60 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-700 hover:bg-amber-100"
                             >
                                 <MessageSquare className="h-4 w-4" />
                                 Create Account
@@ -39,7 +47,7 @@ const Welcome = () => {
 
                             <Link
                                 to="/login"
-                                className="rounded-xl border border-amber-500/60 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-700 hover:bg-amber-100"
+                                className="theme-border theme-surface rounded-xl border px-5 py-3 text-sm font-semibold theme-text hover:border-amber-500/60 hover:text-amber-600"
                             >
                                 Login
                             </Link>

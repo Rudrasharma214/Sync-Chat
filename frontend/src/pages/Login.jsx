@@ -20,7 +20,7 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
     if (result.success) {
       toast.success("Login successful");
-      navigate("/");
+      navigate("/chat");
     } else {
       toast.error(result.message || "Login failed");
     }

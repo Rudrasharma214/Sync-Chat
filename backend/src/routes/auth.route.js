@@ -28,9 +28,9 @@ router.post("/logout", authenticate, authController.logout);
 /**
  * @route POST /api/auth/refresh-token
  * @desc Refresh access token using refresh token
- * @access Private
+ * @access Public (uses refresh token cookie)
  */
-router.post("/refresh-token", authenticate, authController.refreshToken);
+router.post("/refresh-token", authController.refreshToken);
 
 /**
  * @route PATCH /api/auth/change-password
@@ -38,6 +38,13 @@ router.post("/refresh-token", authenticate, authController.refreshToken);
  * @access Private
  */
 router.patch("/change-password", authenticate, authController.changePassword);
+
+/**
+ * @route GET /api/auth/me
+ * @desc Get current authenticated user profile
+ * @access Private
+ */
+router.get("/me", authenticate, authController.getMe);
 
 export default router;
 

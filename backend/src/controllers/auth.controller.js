@@ -2,6 +2,7 @@ import * as authService from "../services/auth.service.js";
 import { STATUS } from "../constant/statusCodes.js";
 import { sendResponse, sendErrorResponse } from '../utils/response.js'
 import env from "../config/env.js";
+import { verifyToken } from "../utils/token.js";
 
 // Register a new user
 export const signup = async (req, res, next) => {
@@ -80,14 +81,16 @@ export const logout = async (req, res, next) => {
 // Refresh access token using refresh token
 export const refreshToken = async (req, res, next) => {
     try {
-        const userId = req.user._id;
-        const refreshToken = req.cookies.refreshToken;
+        const refreshTokenCookie = req.cookies.refreshToken;
 
-        if (!refreshToken) {
+        if (!refreshTokenCookie) {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "No refresh token provided");
         }
 
-        const result = await authService.refreshToken(userId, refreshToken);
+        const decoded = verifyToken(refreshTokenCookie);
+        const userId = decoded.userId || decoded.id;
+
+        const result = await authService.refreshToken(userId, refreshTokenCookie);
 
         if (!result.success) {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
@@ -130,6 +133,25 @@ export const changePassword = async (req, res, next) => {
         res.clearCookie("refreshToken");
 
         return sendResponse(res, STATUS.OK, "Password changed successfully");
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Get current authenticated user
+export const getMe = async (req, res, next) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return sendErrorResponse(res, STATUS.UNAUTHORIZED, "Unauthorized");
+        }
+
+        return sendResponse(res, STATUS.OK, "User fetched successfully", {
+            id: user._id,
+            fullname: user.fullname,
+            email: user.email,
+        });
     } catch (error) {
         next(error);
     }

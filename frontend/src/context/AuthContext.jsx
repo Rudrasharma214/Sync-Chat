@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import * as authService from '../services/AuthServices';
 import { logger } from '../utils/logger';
 
@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const hasCheckedAuth = useRef(false);
 
     /**
      * Check if user is authenticated on app load
@@ -22,19 +23,22 @@ export const AuthProvider = ({ children }) => {
             setIsCheckingAuth(true);
             setError(null);
 
-            // Call a GET endpoint to verify auth (e.g., GET /api/auth/me)
-            // For now, we'll check if cookies are valid by making a test request
-            // You should create a GET /api/auth/me endpoint on backend
-
             logger.info('Auth check in progress', null, 'AuthContext');
-            // Mock: assume user is authenticated if we reach here (backend validates cookie)
-            // Real implementation: call an endpoint to verify token in cookie
 
-            setIsCheckingAuth(false);
+            const result = await authService.getMe();
+
+            if (result.success) {
+                setAuthUser(result.data);
+                logger.info('Auth check successful', result.data, 'AuthContext');
+            } else {
+                setAuthUser(null);
+                logger.warn('Auth check failed: user not authenticated', result.message, 'AuthContext');
+            }
         } catch (err) {
             logger.error('Auth check failed', err, 'AuthContext');
             setAuthUser(null);
             setError(err.message);
+        } finally {
             setIsCheckingAuth(false);
         }
     }, []);
@@ -132,6 +136,11 @@ export const AuthProvider = ({ children }) => {
 
     // Check auth on mount
     useEffect(() => {
+        if (hasCheckedAuth.current) {
+            return;
+        }
+
+        hasCheckedAuth.current = true;
         checkAuth();
     }, [checkAuth]);
 

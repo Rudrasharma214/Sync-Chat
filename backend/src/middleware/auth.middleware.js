@@ -18,7 +18,8 @@ export const authenticate = async (req, res, next) => {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "Invalid token")
         }
 
-        const user = await getUserById(decoded.userId)
+        const userId = decoded.userId || decoded.id
+        const user = await getUserById(userId)
 
         if (!user) {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "User not found")

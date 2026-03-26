@@ -92,3 +92,20 @@ export const refreshToken = async () => {
         }
     }
 }
+
+/**
+ * Get currently authenticated user using cookie-based auth
+ */
+export const getMe = async () => {
+    try {
+        const response = await api.get("/auth/me")
+        logger.info('Get current user API call successful', null, 'AuthServices')
+        return { success: true, data: response.data.data }
+    } catch (error) {
+        logger.error('Get current user API call failed', error.response?.data, 'AuthServices')
+        return {
+            success: false,
+            message: error.response?.data?.message || error.message
+        }
+    }
+}

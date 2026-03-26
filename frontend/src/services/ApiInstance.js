@@ -1,6 +1,16 @@
 import axios from 'axios';
 import { logger } from '../utils/logger';
 
+let refreshPromise = null;
+
+const shouldSkipRefresh = (url = '') => {
+    return (
+        url.includes('/auth/login') ||
+        url.includes('/auth/signup') ||
+        url.includes('/auth/refresh-token')
+    );
+};
+
 // Create axios instance
 export const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -41,7 +51,7 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // Handle 401 Unauthorized
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 && originalRequest && !shouldSkipRefresh(originalRequest.url)) {
             logger.warn('Unauthorized (401) - Attempting token refresh', {
                 url: originalRequest.url,
             }, 'ApiInterceptor');
@@ -51,9 +61,14 @@ api.interceptors.response.use(
                 originalRequest._retry = true;
 
                 try {
-                    // Attempt to refresh token
-                    // Backend will set new accessToken in httpOnly cookie
-                    const refreshResponse = await api.post('/auth/refresh-token');
+                    if (!refreshPromise) {
+                        // Execute one refresh request and share it across pending 401 retries.
+                        refreshPromise = api.post('/auth/refresh-token').finally(() => {
+                            refreshPromise = null;
+                        });
+                    }
+
+                    await refreshPromise;
 
                     logger.info('Token refreshed successfully', null, 'ApiInterceptor');
 
@@ -63,12 +78,8 @@ api.interceptors.response.use(
                     // Refresh failed - user must login again
                     logger.error('Token refresh failed', refreshError, 'ApiInterceptor');
 
-                    // Clear any stale cookies
-                    document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                    document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
                     // Redirect to login
-                    if (typeof window !== 'undefined') {
+                    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
                         window.location.href = '/login';
                     }
 

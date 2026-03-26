@@ -8,7 +8,7 @@ const SidebarMenu = ({ isDarkMode, onToggleTheme, onOpenSettings }) => {
     return (
         <aside className="flex w-20 flex-col items-center justify-between border-r theme-border bg-[var(--sidebar)] py-4 sm:w-24 sm:py-6">
             <div className="flex flex-col items-center gap-4">
-                <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500 text-3xl font-bold text-slate-900 shadow-sm shadow-amber-500/30">
+                <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500 text-3xl font-bold text-slate-900 shadow-sm shadow-amber-500/30">
                     S
                 </div>
                 <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-slate-900 shadow-sm shadow-amber-500/30">

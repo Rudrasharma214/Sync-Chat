@@ -12,6 +12,13 @@ const router = express.Router();
 router.post("/direct", authenticate, conversationController.createOrGetDirectConversation);
 
 /**
+ * @route GET /api/conversations
+ * @desc Get all conversations (direct + group) for authenticated user
+ * @access Private
+ */
+router.get("/", authenticate, conversationController.getAllConversations);
+
+/**
  * @route GET /api/conversations/:conversationId
  * @desc Get conversation by ID
  * @access Private

@@ -136,3 +136,65 @@ export const getConversationWithValidation = async (conversationId, userId) => {
         };
     }
 };
+
+/**
+ * Get all conversations for current user (direct + group)
+ * @param {string} userId - Current user ID
+ * @returns {object} Response object with success, statusCode, message, data
+ */
+export const getAllConversations = async (userId) => {
+    try {
+        if (!userId) {
+            return {
+                success: false,
+                statusCode: STATUS.BAD_REQUEST,
+                message: "User ID is required"
+            };
+        }
+
+        const conversations = await conversationRepo.getConversationsByParticipantId(userId);
+
+        const populatedConversations = await Promise.all(
+            conversations.map((conversation) =>
+                conversation.populate([
+                    { path: "participants", select: "id fullname email profilepic" },
+                    { path: "groupId", select: "name avatar description createdBy members" },
+                    { path: "lastMessage", populate: { path: "senderId", select: "id fullname profilepic" } },
+                ])
+            )
+        );
+
+        const normalizedConversations = populatedConversations.map((conversation) => {
+            const isDirect = conversation.type === "direct";
+            const otherParticipant = isDirect
+                ? conversation.participants.find((participant) => participant._id.toString() !== userId.toString()) || null
+                : null;
+
+            return {
+                _id: conversation._id,
+                type: conversation.type,
+                participants: conversation.participants,
+                otherParticipant,
+                group: conversation.groupId || null,
+                lastMessage: conversation.lastMessage,
+                lastMessageAt: conversation.lastMessageAt,
+                createdAt: conversation.createdAt,
+                updatedAt: conversation.updatedAt,
+            };
+        });
+
+        return {
+            success: true,
+            statusCode: STATUS.OK,
+            message: "Conversations fetched successfully",
+            data: normalizedConversations,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            statusCode: STATUS.INTERNAL_ERROR,
+            message: "Error fetching conversations",
+            error: error.message,
+        };
+    }
+};

@@ -53,3 +53,24 @@ export const getConversation = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * Get all direct and group conversations for current user
+ * @route GET /api/conversations
+ * @access Private
+ */
+export const getAllConversations = async (req, res, next) => {
+    try {
+        const { _id: userId } = req.user;
+
+        const result = await conversationService.getAllConversations(userId);
+
+        if (!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
+        }
+
+        return sendResponse(res, result.statusCode, result.message, result.data);
+    } catch (error) {
+        next(error);
+    }
+};

@@ -49,7 +49,7 @@ export const upsertMessageStatus = async (messageId, userId, updateData) => {
     return await MessageStatus.findOneAndUpdate(
         { messageId, userId },
         updateData,
-        { new: true, upsert: true }
+        { returnDocument: "after", upsert: true }
     );
 };
 

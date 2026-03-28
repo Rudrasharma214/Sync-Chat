@@ -13,7 +13,7 @@ export const upsertNotificationPreference = async (userId, updateData) => {
     return await NotificationPreference.findOneAndUpdate(
         { userId },
         updateData,
-        { new: true, upsert: true }
+        { returnDocument: "after", upsert: true }
     );
 };
 
@@ -21,7 +21,7 @@ export const toggleNotifications = async (userId, enabled) => {
     return await NotificationPreference.findOneAndUpdate(
         { userId },
         { notificationsEnabled: enabled },
-        { new: true, upsert: true }
+        { returnDocument: "after", upsert: true }
     );
 };
 
@@ -29,7 +29,7 @@ export const updateLastNotifiedAt = async (userId, notifiedAt = new Date()) => {
     return await NotificationPreference.findOneAndUpdate(
         { userId },
         { lastNotifiedAt: notifiedAt },
-        { new: true }
+        { returnDocument: "after" }
     );
 };
 

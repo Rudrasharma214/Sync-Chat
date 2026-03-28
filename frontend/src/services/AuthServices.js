@@ -63,7 +63,7 @@ export const changePassword = async (currentPassword, newPassword) => {
  */
 export const logout = async () => {
   try {
-    const response = await api.post("/auth/logout");
+    await api.post("/auth/logout");
     logger.info("Logout API call successful", null, "AuthServices");
     return { success: true };
   } catch (error) {

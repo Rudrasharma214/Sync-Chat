@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import * as authService from "../services/AuthServices";
 import { logger } from "../utils/logger";

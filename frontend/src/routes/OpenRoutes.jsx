@@ -18,7 +18,7 @@ const OpenRoute = ({ children }) => {
         );
     }
 
-    return !authUser ? children : <Navigate to="/" replace />;
+    return !authUser ? children : <Navigate to="/chat" replace />;
 };
 
 export default OpenRoute;

@@ -3,11 +3,11 @@ import { MessageCircle, Search } from "lucide-react";
 
 const ConversationList = ({ conversations, activeConversationId, onSelectConversation }) => {
     return (
-        <section className="theme-surface w-full theme-border sm:w-[340px] sm:border-r">
-            <div className="p-4 sm:p-5">
+        <section className="theme-surface flex h-full w-full flex-col theme-border sm:w-[300px] sm:border-r lg:w-[320px]">
+            <div className="flex h-full min-h-0 flex-col p-4 sm:p-5">
                 <div className="mb-4 flex items-center gap-2">
                     <div>
-                        <p className="theme-text text-3xl font-semibold">Sync Chat</p>
+                        <p className="theme-text text-2xl font-semibold">Sync Chat</p>
                     </div>
                 </div>
 
@@ -15,12 +15,12 @@ const ConversationList = ({ conversations, activeConversationId, onSelectConvers
                     <Search className="theme-muted pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <input
                         type="text"
-                        className="theme-input w-full rounded-xl border py-2 pl-10 pr-3 text-sm outline-none focus:border-amber-500"
+                        className="theme-input w-full rounded-xl border py-1.5 pl-10 pr-3 text-sm outline-none focus:border-amber-500"
                         placeholder="Search"
                     />
                 </div>
 
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 min-h-0 space-y-2 overflow-y-auto pr-1">
                     {conversations.map((conversation) => {
                         const isActive = conversation.id === activeConversationId;
 
@@ -30,8 +30,8 @@ const ConversationList = ({ conversations, activeConversationId, onSelectConvers
                                 key={conversation.id}
                                 onClick={() => onSelectConversation(conversation.id)}
                                 className={`w-full rounded-2xl border p-3 text-left transition ${isActive
-                                        ? "border-amber-400/70 bg-amber-500/10"
-                                        : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
+                                    ? "border-amber-400/70 bg-amber-500/10"
+                                    : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
                                     }`}
                             >
                                 <div className="flex items-start gap-3">

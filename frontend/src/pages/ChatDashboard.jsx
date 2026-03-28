@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import SidebarMenu from "../components/chat/SidebarMenu";
 import ConversationList from "../components/chat/ConversationList";
 import ChatArea from "../components/chat/ChatArea";
@@ -70,6 +71,7 @@ const dummyConversations = [
 const ChatDashboard = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const [activeConversationId, setActiveConversationId] = useState(dummyConversations[0].id);
     const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -87,6 +89,13 @@ const ChatDashboard = () => {
         setIsChatOpen(false);
     };
 
+    const handleLogout = async () => {
+        const result = await logout();
+        if (result?.success) {
+            navigate("/login");
+        }
+    };
+
     return (
         <main className="theme-bg h-screen w-screen overflow-hidden">
             <div className="theme-border flex h-full w-full overflow-hidden border bg-[linear-gradient(120deg,var(--surface)_0%,var(--surface-soft)_100%)]">
@@ -94,19 +103,26 @@ const ChatDashboard = () => {
                     isDarkMode={isDarkMode}
                     onToggleTheme={toggleTheme}
                     onOpenSettings={() => navigate("/settings")}
+                    onLogout={handleLogout}
                 />
 
-                {!isChatOpen ? (
+                <div
+                    className={
+                        isChatOpen
+                            ? "hidden sm:flex sm:w-[300px] lg:w-[320px]"
+                            : "flex w-full sm:w-[300px] lg:w-[320px]"
+                    }
+                >
                     <ConversationList
                         conversations={dummyConversations}
                         activeConversationId={activeConversation.id}
                         onSelectConversation={handleSelectConversation}
                     />
-                ) : null}
+                </div>
 
-                {isChatOpen ? (
+                <div className={isChatOpen ? "flex min-w-0 flex-1" : "hidden sm:flex sm:min-w-0 sm:flex-1"}>
                     <ChatArea activeConversation={activeConversation} onBack={handleBackToList} />
-                ) : null}
+                </div>
             </div>
         </main>
     );

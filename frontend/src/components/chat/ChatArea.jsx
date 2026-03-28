@@ -6,8 +6,8 @@ const menuIconBtnClass =
 
 const ChatArea = ({ activeConversation, onBack }) => {
     return (
-        <section className="theme-surface flex min-w-0 flex-1 flex-col">
-            <header className="theme-border flex items-center justify-between border-b px-3 py-3 sm:px-6 sm:py-4">
+        <section className="theme-surface flex h-full min-w-0 flex-1 flex-col">
+            <header className="theme-border flex items-center justify-between border-b px-3 py-3 sm:px-5 sm:py-3">
                 <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                     <button
                         type="button"
@@ -24,7 +24,7 @@ const ChatArea = ({ activeConversation, onBack }) => {
                         className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
                     />
                     <div className="min-w-0">
-                        <h2 className="theme-text truncate text-sm font-semibold sm:text-2xl">
+                        <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
                             {activeConversation.name}
                         </h2>
                         <p className="text-xs text-amber-500">{activeConversation.online ? "Online" : "Last seen 22m ago"}</p>
@@ -53,11 +53,11 @@ const ChatArea = ({ activeConversation, onBack }) => {
                 </div>
             </header>
 
-            <div className="flex-1 space-y-3 overflow-y-auto px-3 py-4 sm:px-6 sm:py-5">
+            <div className="flex-1 space-y-3 overflow-y-auto px-3 py-4 sm:px-5 sm:py-4">
                 {activeConversation.messages.map((message) => (
                     <div key={message.id} className={`flex ${message.isMine ? "justify-end" : "justify-start"}`}>
                         <div
-                            className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm sm:max-w-[80%] sm:px-4 sm:py-2.5 ${message.isMine ? "bg-[var(--bubble-mine)] text-slate-900" : "bg-[var(--bubble-their)] theme-text"
+                            className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm sm:max-w-[72%] sm:px-3.5 sm:py-2 ${message.isMine ? "bg-[var(--bubble-mine)] text-slate-900" : "bg-[var(--bubble-their)] theme-text"
                                 }`}
                         >
                             <p className="mb-1 text-xs font-semibold opacity-75">{message.sender}</p>

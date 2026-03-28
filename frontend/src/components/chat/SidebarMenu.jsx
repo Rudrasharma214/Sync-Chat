@@ -6,7 +6,7 @@ const menuIconBtnClass =
 
 const SidebarMenu = ({ isDarkMode, onToggleTheme, onOpenSettings, onLogout }) => {
     return (
-        <aside className="flex w-12 flex-col items-center justify-between border-r theme-border bg-[var(--sidebar)] py-2 sm:w-20 sm:py-5">
+        <aside className="fixed left-0 top-0 z-30 flex h-full w-16 shrink-0 flex-col items-center justify-between border-r theme-border bg-[var(--sidebar)] py-2 sm:static sm:z-auto sm:h-auto sm:w-20 sm:py-5">
             <div className="flex flex-col items-center gap-2 sm:gap-4">
                 <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-xl font-bold text-slate-900 shadow-sm shadow-amber-500/30 sm:h-11 sm:w-11 sm:rounded-xl sm:text-2xl">
                     S

@@ -106,22 +106,24 @@ const ChatDashboard = () => {
                     onLogout={handleLogout}
                 />
 
-                <div
-                    className={
-                        isChatOpen
-                            ? "hidden sm:flex sm:w-[300px] lg:w-[320px]"
-                            : "flex w-full sm:w-[300px] lg:w-[320px]"
-                    }
-                >
-                    <ConversationList
-                        conversations={dummyConversations}
-                        activeConversationId={activeConversation.id}
-                        onSelectConversation={handleSelectConversation}
-                    />
-                </div>
+                <div className="flex min-w-0 flex-1 pl-16 sm:pl-0">
+                    <div
+                        className={
+                            isChatOpen
+                                ? "hidden sm:flex sm:w-[300px] lg:w-[320px]"
+                                : "flex w-full sm:w-[300px] lg:w-[320px]"
+                        }
+                    >
+                        <ConversationList
+                            conversations={dummyConversations}
+                            activeConversationId={activeConversation.id}
+                            onSelectConversation={handleSelectConversation}
+                        />
+                    </div>
 
-                <div className={isChatOpen ? "flex min-w-0 flex-1" : "hidden sm:flex sm:min-w-0 sm:flex-1"}>
-                    <ChatArea activeConversation={activeConversation} onBack={handleBackToList} />
+                    <div className={isChatOpen ? "flex min-w-0 flex-1" : "hidden sm:flex sm:min-w-0 sm:flex-1"}>
+                        <ChatArea activeConversation={activeConversation} onBack={handleBackToList} />
+                    </div>
                 </div>
             </div>
         </main>

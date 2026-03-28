@@ -68,14 +68,14 @@ const ChatArea = ({ activeConversation, onBack }) => {
                 ))}
             </div>
 
-            <footer className="theme-border border-t p-2 sm:p-4">
-                <div className="theme-input flex items-center gap-1.5 rounded-2xl border px-2.5 py-2 sm:gap-2 sm:px-3 sm:py-2.5">
+            <footer className="theme-border border-t p-2 sm:p-3">
+                <div className="theme-border mx-auto flex w-full max-w-[720px] items-center gap-2 rounded-2xl border bg-[var(--surface-soft)] px-2 py-1 sm:gap-2.5 sm:px-3 sm:py-1.5">
                     <button type="button" className={menuIconBtnClass} aria-label="Attach file" title="Attach file">
                         <Paperclip className="h-4 w-4" />
                     </button>
                     <input
                         type="text"
-                        className="theme-bg theme-text w-full bg-transparent text-sm outline-none"
+                        className="theme-text h-7 w-full bg-transparent text-sm outline-none sm:h-8"
                         placeholder="Your message"
                     />
                     <button type="button" className="hidden sm:inline-flex" aria-label="Emoji" title="Emoji">

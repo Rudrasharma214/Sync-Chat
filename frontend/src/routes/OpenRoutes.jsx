@@ -8,17 +8,17 @@ import { Loader } from "lucide-react";
  * Redirects to chat if user is already authenticated
  */
 const OpenRoute = ({ children }) => {
-    const { authUser, isCheckingAuth } = useAuth();
+  const { authUser, isCheckingAuth } = useAuth();
 
-    if (isCheckingAuth) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Loader className="size-10 animate-spin" />
-            </div>
-        );
-    }
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
 
-    return !authUser ? children : <Navigate to="/chat" replace />;
+  return !authUser ? children : <Navigate to="/chat" replace />;
 };
 
 export default OpenRoute;

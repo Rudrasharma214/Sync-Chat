@@ -66,8 +66,12 @@ const Signup = () => {
         <div className="relative flex items-center justify-center px-6 py-16 sm:px-10 lg:px-14">
           <div className="theme-surface relative w-full max-w-md sm:p-10">
             <div className="mb-8 text-center">
-              <h1 className="theme-text mt-4 text-3xl font-semibold tracking-tight">Create Account</h1>
-              <p className="theme-muted mt-2 text-sm">Join Sync-Chat and start messaging in seconds.</p>
+              <h1 className="theme-text mt-4 text-3xl font-semibold tracking-tight">
+                Create Account
+              </h1>
+              <p className="theme-muted mt-2 text-sm">
+                Join Sync-Chat and start messaging in seconds.
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

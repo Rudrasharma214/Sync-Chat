@@ -13,145 +13,151 @@ import SettingsProfile from "../components/settings/SettingsProfile";
 import SettingsSidebar from "../components/settings/SettingsSidebar";
 
 const sections = [
-    {
-        id: "profile",
-        label: "Profile",
-        icon: User,
-    },
-    {
-        id: "notifications",
-        label: "Notifications",
-        icon: Bell,
-    },
-    {
-        id: "appearance",
-        label: "Appearance",
-        icon: Palette,
-    }
+  {
+    id: "profile",
+    label: "Profile",
+    icon: User,
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    icon: Bell,
+  },
+  {
+    id: "appearance",
+    label: "Appearance",
+    icon: Palette,
+  },
 ];
 
 const Settings = () => {
-    const navigate = useNavigate();
-    const { authUser } = useAuth();
-    const { isDarkMode, toggleTheme } = useTheme();
-    const [activeSection, setActiveSection] = useState("notifications");
-    const [passwordForm, setPasswordForm] = useState({
+  const navigate = useNavigate();
+  const { authUser } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const [activeSection, setActiveSection] = useState("notifications");
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const {
+    data: notificationPreferences,
+    isLoading: isLoadingPreferences,
+    isError: isPreferencesError,
+  } = useNotificationPreferences();
+
+  const toggleNotificationsMutation = useToggleNotifications();
+  const changePasswordMutation = useChangePassword();
+
+  const notificationsEnabled = notificationPreferences?.notificationsEnabled ?? true;
+
+  const handleToggleNotifications = () => {
+    toggleNotificationsMutation.mutate(!notificationsEnabled, {
+      onSuccess: () => {
+        toast.success(`Notifications ${notificationsEnabled ? "disabled" : "enabled"}`);
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to update notifications");
+      },
+    });
+  };
+
+  const handlePasswordChange = (event) => {
+    const { name, value } = event.target;
+    setPasswordForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      toast.error("Please fill in all password fields.");
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error("New password and confirmation do not match.");
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long.");
+      return;
+    }
+
+    const result = await changePasswordMutation.mutateAsync({
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword,
+    });
+
+    if (result?.success) {
+      toast.success("Password updated successfully.");
+      setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-    });
+      });
+      return;
+    }
 
-    const {
-        data: notificationPreferences,
-        isLoading: isLoadingPreferences,
-        isError: isPreferencesError,
-    } = useNotificationPreferences();
+    toast.error(result?.message || "Failed to update password.");
+  };
 
-    const toggleNotificationsMutation = useToggleNotifications();
-    const changePasswordMutation = useChangePassword();
+  return (
+    <main className="theme-bg min-h-screen px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
+          <button
+            type="button"
+            onClick={() => navigate("/chat")}
+            className="theme-border theme-text inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition hover:border-amber-500/70 hover:text-amber-500"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to chat
+          </button>
 
-    const notificationsEnabled = notificationPreferences?.notificationsEnabled ?? true;
+          <div className="theme-muted text-xs sm:text-sm">
+            Personal preferences and notification controls
+          </div>
+        </div>
 
-    const handleToggleNotifications = () => {
-        toggleNotificationsMutation.mutate(!notificationsEnabled, {
-            onSuccess: () => {
-                toast.success(`Notifications ${notificationsEnabled ? "disabled" : "enabled"}`);
-            },
-            onError: (error) => {
-                toast.error(error.message || "Failed to update notifications");
-            },
-        });
-    };
+        <div className="theme-border grid min-h-[60vh] grid-cols-1 overflow-hidden rounded-3xl border theme-surface md:min-h-[72vh] md:grid-cols-[240px_1fr]">
+          <SettingsSidebar
+            sections={sections}
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
 
-    const handlePasswordChange = (event) => {
-        const { name, value } = event.target;
-        setPasswordForm((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handlePasswordSubmit = async (event) => {
-        event.preventDefault();
-
-        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-            toast.error("Please fill in all password fields.");
-            return;
-        }
-
-        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            toast.error("New password and confirmation do not match.");
-            return;
-        }
-
-        if (passwordForm.newPassword.length < 6) {
-            toast.error("New password must be at least 6 characters long.");
-            return;
-        }
-
-        const result = await changePasswordMutation.mutateAsync({
-            currentPassword: passwordForm.currentPassword,
-            newPassword: passwordForm.newPassword,
-        });
-
-        if (result?.success) {
-            toast.success("Password updated successfully.");
-            setPasswordForm({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-            });
-            return;
-        }
-
-        toast.error(result?.message || "Failed to update password.");
-    };
-
-    return (
-        <main className="theme-bg min-h-screen px-4 py-6 sm:px-6 sm:py-8">
-            <div className="mx-auto w-full max-w-6xl">
-                <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
-                    <button
-                        type="button"
-                        onClick={() => navigate("/chat")}
-                        className="theme-border theme-text inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition hover:border-amber-500/70 hover:text-amber-500"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to chat
-                    </button>
-
-                    <div className="theme-muted text-xs sm:text-sm">Personal preferences and notification controls</div>
-                </div>
-
-                <div className="theme-border grid min-h-[60vh] grid-cols-1 overflow-hidden rounded-3xl border theme-surface md:min-h-[72vh] md:grid-cols-[240px_1fr]">
-                    <SettingsSidebar
-                        sections={sections}
-                        activeSection={activeSection}
-                        onSectionChange={setActiveSection}
-                    />
-
-                    <section className="space-y-5 p-4 sm:p-6">
-                        {activeSection === "notifications" ? (
-                            <SettingsNotifications
-                                notificationsEnabled={notificationsEnabled}
-                                isLoadingPreferences={isLoadingPreferences}
-                                isPreferencesError={isPreferencesError}
-                                isPending={toggleNotificationsMutation.isPending}
-                                onToggleNotifications={handleToggleNotifications}
-                            />
-                        ) : activeSection === "profile" ? (
-                            <SettingsProfile
-                                authUser={authUser}
-                                passwordForm={passwordForm}
-                                onPasswordChange={handlePasswordChange}
-                                onPasswordSubmit={handlePasswordSubmit}
-                                isSaving={changePasswordMutation.isPending}
-                            />
-                        ) : (
-                            <SettingsAppearance isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-                        )}
-                    </section>
-                </div>
-            </div>
-        </main>
-    );
+          <section className="space-y-5 p-4 sm:p-6">
+            {activeSection === "notifications" ? (
+              <SettingsNotifications
+                notificationsEnabled={notificationsEnabled}
+                isLoadingPreferences={isLoadingPreferences}
+                isPreferencesError={isPreferencesError}
+                isPending={toggleNotificationsMutation.isPending}
+                onToggleNotifications={handleToggleNotifications}
+              />
+            ) : activeSection === "profile" ? (
+              <SettingsProfile
+                authUser={authUser}
+                passwordForm={passwordForm}
+                onPasswordChange={handlePasswordChange}
+                onPasswordSubmit={handlePasswordSubmit}
+                isSaving={changePasswordMutation.isPending}
+              />
+            ) : (
+              <SettingsAppearance isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+            )}
+          </section>
+        </div>
+      </div>
+    </main>
+  );
 };
 
 export default Settings;

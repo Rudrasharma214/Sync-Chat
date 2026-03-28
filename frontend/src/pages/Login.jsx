@@ -33,7 +33,9 @@ const Login = () => {
         <div className="relative flex items-center justify-center px-6 py-16 sm:px-10 lg:px-14">
           <div className=" theme-surface relative w-full max-w-md  p-8  sm:p-10">
             <div className="mb-8 text-center ">
-              <h1 className="theme-text mt-4 text-3xl font-semibold tracking-tight">Welcome Back</h1>
+              <h1 className="theme-text mt-4 text-3xl font-semibold tracking-tight">
+                Welcome Back
+              </h1>
               <p className="theme-muted mt-2 text-sm">Sign in to continue your conversations.</p>
             </div>
 

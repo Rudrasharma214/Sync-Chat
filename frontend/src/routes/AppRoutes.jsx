@@ -14,51 +14,51 @@ import ProtectedRoute from "./ProtectedRoutes";
  * Centralized route definitions for the application
  */
 const AppRoutes = () => {
-    return (
-        <Routes>
-            <Route path="/" element={<Welcome />} />
+  return (
+    <Routes>
+      <Route path="/" element={<Welcome />} />
 
-            {/* Public Routes - Only accessible when not authenticated */}
-            <Route
-                path="/signup"
-                element={
-                    <OpenRoute>
-                        <Signup />
-                    </OpenRoute>
-                }
-            />
-            <Route
-                path="/login"
-                element={
-                    <OpenRoute>
-                        <Login />
-                    </OpenRoute>
-                }
-            />
+      {/* Public Routes - Only accessible when not authenticated */}
+      <Route
+        path="/signup"
+        element={
+          <OpenRoute>
+            <Signup />
+          </OpenRoute>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <OpenRoute>
+            <Login />
+          </OpenRoute>
+        }
+      />
 
-            {/* Protected Routes - Only accessible when authenticated */}
-            <Route
-                path="/chat"
-                element={
-                    <ProtectedRoute>
-                        <ChatDashboard />
-                    </ProtectedRoute>
-                }
-            />
+      {/* Protected Routes - Only accessible when authenticated */}
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <ChatDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-            <Route
-                path="/settings"
-                element={
-                    <ProtectedRoute>
-                        <Settings />
-                    </ProtectedRoute>
-                }
-            />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
 
-            {/* Catch-all - Redirect to welcome */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-    );
+      {/* Catch-all - Redirect to welcome */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 };
 
 export default AppRoutes;

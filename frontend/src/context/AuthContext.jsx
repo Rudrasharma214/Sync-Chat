@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import * as authService from '../services/AuthServices';
-import { logger } from '../utils/logger';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import * as authService from "../services/AuthServices";
+import { logger } from "../utils/logger";
 
 const AuthContext = createContext();
 
@@ -9,169 +9,169 @@ const AuthContext = createContext();
  * Backend uses httpOnly cookies for token storage
  */
 export const AuthProvider = ({ children }) => {
-    const [authUser, setAuthUser] = useState(null);
-    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const hasCheckedAuth = useRef(false);
+  const [authUser, setAuthUser] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const hasCheckedAuth = useRef(false);
 
-    /**
-     * Check if user is authenticated on app load
-     */
-    const checkAuth = useCallback(async () => {
-        try {
-            setIsCheckingAuth(true);
-            setError(null);
+  /**
+   * Check if user is authenticated on app load
+   */
+  const checkAuth = useCallback(async () => {
+    try {
+      setIsCheckingAuth(true);
+      setError(null);
 
-            logger.info('Auth check in progress', null, 'AuthContext');
+      logger.info("Auth check in progress", null, "AuthContext");
 
-            const result = await authService.getMe();
+      const result = await authService.getMe();
 
-            if (result.success) {
-                setAuthUser(result.data);
-                logger.info('Auth check successful', result.data, 'AuthContext');
-            } else {
-                setAuthUser(null);
-                logger.warn('Auth check failed: user not authenticated', result.message, 'AuthContext');
-            }
-        } catch (err) {
-            logger.error('Auth check failed', err, 'AuthContext');
-            setAuthUser(null);
-            setError(err.message);
-        } finally {
-            setIsCheckingAuth(false);
-        }
-    }, []);
+      if (result.success) {
+        setAuthUser(result.data);
+        logger.info("Auth check successful", result.data, "AuthContext");
+      } else {
+        setAuthUser(null);
+        logger.warn("Auth check failed: user not authenticated", result.message, "AuthContext");
+      }
+    } catch (err) {
+      logger.error("Auth check failed", err, "AuthContext");
+      setAuthUser(null);
+      setError(err.message);
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  }, []);
 
-    /**
-     * Handle login
-     */
-    const login = useCallback(async (email, password) => {
-        try {
-            setIsLoading(true);
-            setError(null);
+  /**
+   * Handle login
+   */
+  const login = useCallback(async (email, password) => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-            const result = await authService.login(email, password);
+      const result = await authService.login(email, password);
 
-            if (result.success) {
-                setAuthUser(result.data);
-                logger.info('Login successful', result.data, 'AuthContext');
-                return { success: true, data: result.data };
-            } else {
-                throw new Error(result.message || 'Login failed');
-            }
-        } catch (err) {
-            const errorMessage = err.response?.data?.message || err.message || 'Login failed';
-            setError(errorMessage);
-            logger.error('Login failed', err, 'AuthContext');
-            return { success: false, message: errorMessage };
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+      if (result.success) {
+        setAuthUser(result.data);
+        logger.info("Login successful", result.data, "AuthContext");
+        return { success: true, data: result.data };
+      } else {
+        throw new Error(result.message || "Login failed");
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || "Login failed";
+      setError(errorMessage);
+      logger.error("Login failed", err, "AuthContext");
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    /**
-     * Handle signup
-     */
-    const signup = useCallback(async (fullname, email, password) => {
-        try {
-            setIsLoading(true);
-            setError(null);
+  /**
+   * Handle signup
+   */
+  const signup = useCallback(async (fullname, email, password) => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-            const result = await authService.signup(fullname, email, password);
+      const result = await authService.signup(fullname, email, password);
 
-            if (result.success) {
-                setAuthUser(result.data);
-                logger.info('Signup successful', result.data, 'AuthContext');
-                return { success: true, data: result.data };
-            } else {
-                throw new Error(result.message || 'Signup failed');
-            }
-        } catch (err) {
-            const errorMessage = err.response?.data?.message || err.message || 'Signup failed';
-            setError(errorMessage);
-            logger.error('Signup failed', err, 'AuthContext');
-            return { success: false, message: errorMessage };
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+      if (result.success) {
+        setAuthUser(result.data);
+        logger.info("Signup successful", result.data, "AuthContext");
+        return { success: true, data: result.data };
+      } else {
+        throw new Error(result.message || "Signup failed");
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || "Signup failed";
+      setError(errorMessage);
+      logger.error("Signup failed", err, "AuthContext");
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    /**
-     * Handle logout
-     */
-    const logout = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            setError(null);
+  /**
+   * Handle logout
+   */
+  const logout = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-            await authService.logout();
-            setAuthUser(null);
-            logger.info('Logout successful', null, 'AuthContext');
-            return { success: true };
-        } catch (err) {
-            const errorMessage = err.message || 'Logout failed';
-            setError(errorMessage);
-            logger.error('Logout failed', err, 'AuthContext');
-            return { success: false, message: errorMessage };
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+      await authService.logout();
+      setAuthUser(null);
+      logger.info("Logout successful", null, "AuthContext");
+      return { success: true };
+    } catch (err) {
+      const errorMessage = err.message || "Logout failed";
+      setError(errorMessage);
+      logger.error("Logout failed", err, "AuthContext");
+      return { success: false, message: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    /**
-     * Update auth user (e.g., after profile update)
-     */
-    const updateAuthUser = useCallback((userData) => {
-        setAuthUser(userData);
-        logger.info('Auth user updated', userData, 'AuthContext');
-    }, []);
+  /**
+   * Update auth user (e.g., after profile update)
+   */
+  const updateAuthUser = useCallback((userData) => {
+    setAuthUser(userData);
+    logger.info("Auth user updated", userData, "AuthContext");
+  }, []);
 
-    /**
-     * Clear auth error
-     */
-    const clearError = useCallback(() => {
-        setError(null);
-    }, []);
+  /**
+   * Clear auth error
+   */
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
-    // Check auth on mount
-    useEffect(() => {
-        if (hasCheckedAuth.current) {
-            return;
-        }
+  // Check auth on mount
+  useEffect(() => {
+    if (hasCheckedAuth.current) {
+      return;
+    }
 
-        hasCheckedAuth.current = true;
-        checkAuth();
-    }, [checkAuth]);
+    hasCheckedAuth.current = true;
+    checkAuth();
+  }, [checkAuth]);
 
-    const value = {
-        // State
-        authUser,
-        isCheckingAuth,
-        isLoading,
-        error,
+  const value = {
+    // State
+    authUser,
+    isCheckingAuth,
+    isLoading,
+    error,
 
-        // Methods
-        checkAuth,
-        login,
-        signup,
-        logout,
-        updateAuthUser,
-        clearError,
-    };
+    // Methods
+    checkAuth,
+    login,
+    signup,
+    logout,
+    updateAuthUser,
+    clearError,
+  };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 /**
  * Hook to use auth context
  */
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
 
 export default AuthContext;

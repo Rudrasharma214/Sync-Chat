@@ -71,11 +71,21 @@ const ChatDashboard = () => {
     const { isDarkMode, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [activeConversationId, setActiveConversationId] = useState(dummyConversations[0].id);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const activeConversation = useMemo(
         () => dummyConversations.find((conversation) => conversation.id === activeConversationId) ?? dummyConversations[0],
         [activeConversationId]
     );
+
+    const handleSelectConversation = (conversationId) => {
+        setActiveConversationId(conversationId);
+        setIsChatOpen(true);
+    };
+
+    const handleBackToList = () => {
+        setIsChatOpen(false);
+    };
 
     return (
         <main className="theme-bg h-screen w-screen overflow-hidden">
@@ -86,13 +96,17 @@ const ChatDashboard = () => {
                     onOpenSettings={() => navigate("/settings")}
                 />
 
-                <ConversationList
-                    conversations={dummyConversations}
-                    activeConversationId={activeConversation.id}
-                    onSelectConversation={setActiveConversationId}
-                />
+                {!isChatOpen ? (
+                    <ConversationList
+                        conversations={dummyConversations}
+                        activeConversationId={activeConversation.id}
+                        onSelectConversation={handleSelectConversation}
+                    />
+                ) : null}
 
-                <ChatArea activeConversation={activeConversation} />
+                {isChatOpen ? (
+                    <ChatArea activeConversation={activeConversation} onBack={handleBackToList} />
+                ) : null}
             </div>
         </main>
     );

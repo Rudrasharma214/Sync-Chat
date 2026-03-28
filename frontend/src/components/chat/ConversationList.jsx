@@ -3,7 +3,7 @@ import { MessageCircle, Search } from "lucide-react";
 
 const ConversationList = ({ conversations, activeConversationId, onSelectConversation }) => {
     return (
-        <section className="theme-surface w-[300px] border-r theme-border sm:w-[340px]">
+        <section className="theme-surface w-full theme-border sm:w-[340px] sm:border-r">
             <div className="p-4 sm:p-5">
                 <div className="mb-4 flex items-center gap-2">
                     <div>

@@ -10,6 +10,15 @@ const dummyConversations = [
     {
         id: "c1",
         name: "Design chat",
+        email: "jasmin.lowery@example.com",
+        phone: "+1 (555) 013-2244",
+        about: "Product design lead. Loves clean systems and golden-hour lighting.",
+        media: [
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80",
+            "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=240&q=80",
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80",
+            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=240&q=80",
+        ],
         preview: "You: Let us lock the amber tokens before launch.",
         time: "4m",
         unread: 1,
@@ -43,6 +52,14 @@ const dummyConversations = [
     {
         id: "c2",
         name: "Dev squad",
+        email: "anthony.cordanes@example.com",
+        phone: "+1 (555) 017-8891",
+        about: "Infrastructure lead. Obsessed with green builds and fast feedback loops.",
+        media: [
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80",
+            "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=240&q=80",
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80",
+        ],
         preview: "Anthony: Build passed on staging.",
         time: "20m",
         unread: 0,

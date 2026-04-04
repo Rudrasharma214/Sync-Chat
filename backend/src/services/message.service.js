@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { STATUS } from "../constant/statusCodes.js";
 import * as conversationRepo from "../repositories/conversation.repositories.js";
 import * as messageRepo from "../repositories/message.repository.js";
+import { emitToConversation, emitToUser } from "../config/socket.js";
 
 const UPDATE_WINDOW_MS = 2 * 60 * 60 * 1000;
 const DELETE_EVERYONE_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -94,6 +95,8 @@ export const sendMessage = async (userId, payload) => {
                 },
             },
         ]);
+
+        emitToConversation(conversationId, "newMessage", populatedMessage);
 
         return {
             success: true,
@@ -247,6 +250,8 @@ export const updateMessage = async (userId, messageId, content) => {
             },
         ]);
 
+        emitToConversation(populatedMessage.conversationId, "messageUpdated", populatedMessage);
+
         return {
             success: true,
             statusCode: STATUS.OK,
@@ -293,6 +298,11 @@ export const deleteMessage = async (userId, messageId, type) => {
 
         if (type === "me") {
             await messageRepo.upsertDeleteForMeStatus(messageId, userId);
+
+            emitToUser(userId, "messageDeleted", {
+                messageId,
+                type: "me",
+            });
 
             return {
                 success: true,
@@ -344,6 +354,11 @@ export const deleteMessage = async (userId, messageId, type) => {
                 },
             },
         ]);
+
+        emitToConversation(populatedMessage.conversationId, "messageDeleted", {
+            messageId,
+            type: "everyone",
+        });
 
         return {
             success: true,

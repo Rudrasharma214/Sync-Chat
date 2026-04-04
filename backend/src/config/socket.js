@@ -4,6 +4,7 @@ import env from "./env.js";
 import logger from "./logger.js";
 import { verifyToken } from "../utils/token.js";
 import { getRedisClient } from "../redis/redisConnection.js";
+import * as conversationRepo from "../repositories/conversation.repositories.js";
 
 const ONLINE_USERS_KEY = "online_users";
 
@@ -69,6 +70,40 @@ const untrackOnlineUser = async (userId) => {
 
   await pubClient.sRem(ONLINE_USERS_KEY, String(userId));
   await emitOnlineUsers();
+};
+
+const canJoinConversation = async (conversationId, userId) => {
+  if (!conversationId || !userId) {
+    return false;
+  }
+
+  const conversation = await conversationRepo.getConversationById(conversationId);
+
+  if (!conversation) {
+    return false;
+  }
+
+  return conversation.participants.some((participantId) => participantId.toString() === String(userId));
+};
+
+const joinConversationRoom = async (socket, conversationId, userId) => {
+  if (!conversationId) {
+    return false;
+  }
+
+  const isAllowed = await canJoinConversation(conversationId, userId);
+
+  if (!isAllowed) {
+    logger.warn("Socket attempted to join unauthorized conversation", {
+      socketId: socket.id,
+      userId,
+      conversationId,
+    });
+    return false;
+  }
+
+  socket.join(String(conversationId));
+  return true;
 };
 
 export const initSocket = (server) => {
@@ -139,30 +174,41 @@ export const initSocket = (server) => {
 
       const initialConversationId = socket.handshake.auth?.conversationId;
       if (initialConversationId) {
-        socket.join(String(initialConversationId));
+        await joinConversationRoom(socket, initialConversationId, userId);
       }
 
       const initialConversationIds = socket.handshake.auth?.conversationIds;
       if (Array.isArray(initialConversationIds)) {
-        initialConversationIds.forEach((conversationId) => {
+        for (const conversationId of initialConversationIds) {
           if (conversationId) {
-            socket.join(String(conversationId));
+            await joinConversationRoom(socket, conversationId, userId);
           }
-        });
+        }
       }
 
       await trackOnlineUser(userId);
 
-      socket.on("joinConversation", (conversationId) => {
-        if (conversationId) {
-          socket.join(String(conversationId));
-        }
+      socket.on("joinConversation", async (conversationId) => {
+        await joinConversationRoom(socket, conversationId, userId);
       });
 
       socket.on("leaveConversation", (conversationId) => {
         if (conversationId) {
           socket.leave(String(conversationId));
         }
+      });
+
+      socket.on("typing", async ({ conversationId } = {}) => {
+        if (!conversationId) {
+          return;
+        }
+
+        const isAllowed = await canJoinConversation(conversationId, userId);
+        if (!isAllowed) {
+          return;
+        }
+
+        socket.to(String(conversationId)).emit("typing", { userId });
       });
 
       socket.on("disconnect", async () => {
@@ -195,7 +241,11 @@ export const emitToUser = (userId, event, data) => {
     return;
   }
 
-  getIO().to(String(userId)).emit(event, data);
+  if (!io) {
+    return;
+  }
+
+  io.to(String(userId)).emit(event, data);
 };
 
 export const emitToConversation = (conversationId, event, data) => {
@@ -203,7 +253,11 @@ export const emitToConversation = (conversationId, event, data) => {
     return;
   }
 
-  getIO().to(String(conversationId)).emit(event, data);
+  if (!io) {
+    return;
+  }
+
+  io.to(String(conversationId)).emit(event, data);
 };
 
 export const closeSocket = async () => {

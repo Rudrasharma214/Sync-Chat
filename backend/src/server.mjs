@@ -2,8 +2,9 @@ import app from "./app.mjs";
 import env from "./config/env.js";
 import logger from "./config/logger.js";
 import { connectDB, disconnectDB } from "./config/db.js";
-import { server as socketServer } from "./config/socket.js";
+import { closeSocket, initSocket } from "./config/socket.js";
 import { getRedisClient, closeRedis } from "./redis/redisConnection.js";
+import http from "http";
 
 const PORT = env.PORT || 3000;
 
@@ -13,7 +14,9 @@ const startServer = async () => {
     try {
         await connectDB();
         getRedisClient();
-        server = socketServer.listen(PORT, "0.0.0.0", () => {
+        server = http.createServer(app);
+        initSocket(server);
+        server.listen(PORT, "0.0.0.0", () => {
             logger.info(`Server running on port ${PORT}`);
         });
     } catch (err) {
@@ -38,6 +41,7 @@ const shutdown = async (signal) => {
             });
         }
 
+        await closeSocket();
         await disconnectDB();
         await closeRedis();
         process.exit(0);
@@ -65,5 +69,4 @@ process.on("uncaughtException", (err) => {
     shutdown("UNCAUGHT_EXCEPTION");
 });
 
-void app;
 startServer();

@@ -6,9 +6,10 @@ import authRoutes from "./routes/auth.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import conversationRoutes from "./routes/conversation.route.js";
 import messageRoutes from "./routes/message.route.js";
-import { app } from "./config/socket.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { corsOptions } from "./config/corsOptions.js";
+
+const app = express();
 
 
 app.use(express.json({ limit: "10mb" }));

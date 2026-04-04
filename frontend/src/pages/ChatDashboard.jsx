@@ -1,102 +1,130 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SidebarMenu from "../components/chat/SidebarMenu";
 import ConversationList from "../components/chat/ConversationList";
 import ChatArea from "../components/chat/ChatArea";
+import { useConversationById, useConversations } from "../hooks/useQueries/conversationQueries";
 
-const dummyConversations = [
-  {
-    id: "c1",
-    name: "Design chat",
-    email: "jasmin.lowery@example.com",
-    phone: "+1 (555) 013-2244",
-    about: "Product design lead. Loves clean systems and golden-hour lighting.",
-    media: [
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=240&q=80",
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80",
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=240&q=80",
-    ],
-    preview: "You: Let us lock the amber tokens before launch.",
-    time: "4m",
-    unread: 1,
-    online: true,
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=140&q=80",
-    messages: [
-      {
-        id: "m1",
-        sender: "Jasmin Lowery",
-        text: "I added new flows to our design system. Now you can use them for your projects!",
-        time: "09:20",
-        isMine: false,
-      },
-      {
-        id: "m2",
-        sender: "Alex Hunt",
-        text: "Our intern team has completed the first rotation and they are now part of our core team.",
-        time: "09:24",
-        isMine: false,
-      },
-      {
-        id: "m3",
-        sender: "You",
-        text: "My congratulations! I will be glad to work with everyone on the new project.",
-        time: "09:27",
-        isMine: true,
-      },
-    ],
-  },
-  {
-    id: "c2",
-    name: "Dev squad",
-    email: "anthony.cordanes@example.com",
-    phone: "+1 (555) 017-8891",
-    about: "Infrastructure lead. Obsessed with green builds and fast feedback loops.",
-    media: [
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=240&q=80",
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80",
-    ],
-    preview: "Anthony: Build passed on staging.",
-    time: "20m",
+const FALLBACK_AVATAR =
+  "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=140&q=80";
+
+const formatConversationTime = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
+const mapConversationListItem = (conversation) => {
+  const isDirect = conversation?.type === "direct";
+  const directParticipant = conversation?.otherParticipant;
+  const group = conversation?.group;
+  const lastMessageText = conversation?.lastMessage?.text?.trim();
+
+  return {
+    id: conversation?._id,
+    name:
+      (isDirect ? directParticipant?.fullname : group?.name) ||
+      (isDirect ? "Direct chat" : "Group chat"),
+    avatar: (isDirect ? directParticipant?.profilepic : group?.avatar) || FALLBACK_AVATAR,
+    preview: lastMessageText || "No messages yet",
+    time: formatConversationTime(conversation?.lastMessageAt),
     unread: 0,
     online: false,
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=140&q=80",
-    messages: [
-      {
-        id: "m4",
-        sender: "Anthony Cordanes",
-        text: "Build passed on staging. Want me to run smoke tests?",
-        time: "08:54",
-        isMine: false,
-      },
-      {
-        id: "m5",
-        sender: "You",
-        text: "Yes. Please check notifications and reconnect behavior too.",
-        time: "08:57",
-        isMine: true,
-      },
-    ],
-  },
-];
+    email: directParticipant?.email || "",
+    phone: "",
+    about: group?.description || "",
+    media: [],
+    messages: [],
+  };
+};
+
+const mapConversationDetails = (conversation, authUserId) => {
+  if (!conversation) {
+    return null;
+  }
+
+  const isDirect = conversation.type === "direct";
+  const directParticipant = isDirect
+    ? conversation?.participants?.find(
+      (participant) => String(participant?._id || participant?.id) !== String(authUserId)
+    )
+    : null;
+
+  const group = conversation?.groupId;
+
+  return {
+    id: conversation._id,
+    name: (isDirect ? directParticipant?.fullname : group?.name) || "Conversation",
+    avatar: (isDirect ? directParticipant?.profilepic : group?.avatar) || FALLBACK_AVATAR,
+    email: directParticipant?.email || "",
+    about: group?.description || "",
+    phone: "",
+    media: [],
+    messages: [],
+  };
+};
 
 const ChatDashboard = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const [activeConversationId, setActiveConversationId] = useState(dummyConversations[0].id);
+  const { authUser, logout } = useAuth();
+  const [activeConversationId, setActiveConversationId] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  const {
+    data: conversationsData,
+    isLoading: isConversationsLoading,
+    isError: isConversationsError,
+    error: conversationsError,
+  } = useConversations();
+
+  const conversations = useMemo(
+    () => (Array.isArray(conversationsData) ? conversationsData.map(mapConversationListItem) : []),
+    [conversationsData]
+  );
+
+  useEffect(() => {
+    if (!conversations.length) {
+      setActiveConversationId(null);
+      return;
+    }
+
+    const hasCurrentSelection = conversations.some(
+      (conversation) => conversation.id === activeConversationId
+    );
+
+    if (!hasCurrentSelection) {
+      setActiveConversationId(conversations[0].id);
+    }
+  }, [conversations, activeConversationId]);
+
+  const { data: activeConversationDetails } = useConversationById(activeConversationId, {
+    enabled: Boolean(activeConversationId),
+  });
+
   const activeConversation = useMemo(
-    () =>
-      dummyConversations.find((conversation) => conversation.id === activeConversationId) ??
-      dummyConversations[0],
-    [activeConversationId]
+    () => {
+      const baseConversation =
+        conversations.find((conversation) => conversation.id === activeConversationId) || null;
+
+      if (!baseConversation) {
+        return null;
+      }
+
+      const authUserId = authUser?.id || authUser?._id;
+      const details = mapConversationDetails(activeConversationDetails, authUserId);
+      return details ? { ...baseConversation, ...details } : baseConversation;
+    },
+    [activeConversationDetails, activeConversationId, authUser, conversations]
   );
 
   const handleSelectConversation = (conversationId) => {
@@ -134,16 +162,25 @@ const ChatDashboard = () => {
             }
           >
             <ConversationList
-              conversations={dummyConversations}
-              activeConversationId={activeConversation.id}
+              conversations={conversations}
+              activeConversationId={activeConversation?.id}
               onSelectConversation={handleSelectConversation}
+              isLoading={isConversationsLoading}
+              isError={isConversationsError}
+              errorMessage={conversationsError?.message}
             />
           </div>
 
           <div
             className={isChatOpen ? "flex min-w-0 flex-1" : "hidden sm:flex sm:min-w-0 sm:flex-1"}
           >
-            <ChatArea activeConversation={activeConversation} onBack={handleBackToList} />
+            {activeConversation ? (
+              <ChatArea activeConversation={activeConversation} onBack={handleBackToList} />
+            ) : (
+              <section className="theme-surface flex h-full w-full items-center justify-center p-4 text-sm theme-muted">
+                Select a conversation to start chatting.
+              </section>
+            )}
           </div>
         </div>
       </div>

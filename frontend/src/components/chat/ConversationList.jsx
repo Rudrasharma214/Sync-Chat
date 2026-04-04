@@ -1,7 +1,14 @@
 import React from "react";
 import { MessageCircle, Search } from "lucide-react";
 
-const ConversationList = ({ conversations, activeConversationId, onSelectConversation }) => {
+const ConversationList = ({
+  conversations,
+  activeConversationId,
+  onSelectConversation,
+  isLoading = false,
+  isError = false,
+  errorMessage = "",
+}) => {
   return (
     <section className="theme-surface flex h-full w-full flex-col theme-border sm:w-[300px] sm:border-r lg:w-[320px]">
       <div className="flex h-full min-h-0 flex-col p-4 sm:p-5">
@@ -20,48 +27,63 @@ const ConversationList = ({ conversations, activeConversationId, onSelectConvers
           />
         </div>
 
-        <div className="mt-4 min-h-0 space-y-2 overflow-y-auto pr-1">
-          {conversations.map((conversation) => {
-            const isActive = conversation.id === activeConversationId;
+        <div className="mt-4 min-h-0 overflow-y-auto pr-1">
+          {isLoading ? (
+            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
+              Loading conversations...
+            </div>
+          ) : isError ? (
+            <div className="flex h-full items-center justify-center py-8 text-center text-sm theme-muted">
+              {errorMessage || "Unable to load conversations right now."}
+            </div>
+          ) : !conversations.length ? (
+            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
+              No conversations yet.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {conversations.map((conversation) => {
+                const isActive = conversation.id === activeConversationId;
 
-            return (
-              <button
-                type="button"
-                key={conversation.id}
-                onClick={() => onSelectConversation(conversation.id)}
-                className={`w-full rounded-2xl border p-3 text-left transition ${
-                  isActive
-                    ? "border-amber-400/70 bg-amber-500/10"
-                    : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <img
-                    src={conversation.avatar}
-                    alt={conversation.name}
-                    className="h-11 w-11 rounded-xl object-cover"
-                  />
+                return (
+                  <button
+                    type="button"
+                    key={conversation.id}
+                    onClick={() => onSelectConversation(conversation.id)}
+                    className={`w-full rounded-2xl border p-3 text-left transition ${isActive
+                        ? "border-amber-400/70 bg-amber-500/10"
+                        : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
+                      }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <img
+                        src={conversation.avatar}
+                        alt={conversation.name}
+                        className="h-11 w-11 rounded-xl object-cover"
+                      />
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="theme-text truncate text-sm font-semibold">
-                        {conversation.name}
-                      </p>
-                      <span className="theme-muted text-xs">{conversation.time}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="theme-text truncate text-sm font-semibold">
+                            {conversation.name}
+                          </p>
+                          <span className="theme-muted text-xs">{conversation.time}</span>
+                        </div>
+
+                        <p className="theme-muted mt-1 truncate text-xs">{conversation.preview}</p>
+                      </div>
+
+                      {conversation.unread > 0 && (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-slate-900">
+                          {conversation.unread}
+                        </span>
+                      )}
                     </div>
-
-                    <p className="theme-muted mt-1 truncate text-xs">{conversation.preview}</p>
-                  </div>
-
-                  {conversation.unread > 0 && (
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-slate-900">
-                      {conversation.unread}
-                    </span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </section>

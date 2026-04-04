@@ -17,6 +17,7 @@ const menuIconBtnClass =
 
 const ChatArea = ({ activeConversation, onBack }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const messages = activeConversation?.messages || [];
 
   return (
     <section className="theme-surface relative flex h-full min-w-0 flex-1 flex-col">
@@ -39,16 +40,16 @@ const ChatArea = ({ activeConversation, onBack }) => {
             title="Chat details"
           >
             <img
-              src={activeConversation.avatar}
-              alt={activeConversation.name}
+              src={activeConversation?.avatar}
+              alt={activeConversation?.name}
               className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
             />
             <div className="min-w-0">
               <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
-                {activeConversation.name}
+                {activeConversation?.name}
               </h2>
               <p className="text-xs text-amber-500">
-                {activeConversation.online ? "Online" : "Last seen 22m ago"}
+                {activeConversation?.online ? "Online" : "Last seen recently"}
               </p>
             </div>
           </button>
@@ -82,17 +83,16 @@ const ChatArea = ({ activeConversation, onBack }) => {
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-3 py-4 sm:px-5 sm:py-4">
-        {activeConversation.messages.map((message) => (
+        {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.isMine ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm sm:max-w-[72%] sm:px-3.5 sm:py-2 ${
-                message.isMine
+              className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm sm:max-w-[72%] sm:px-3.5 sm:py-2 ${message.isMine
                   ? "bg-[var(--bubble-mine)] text-slate-900"
                   : "bg-[var(--bubble-their)] theme-text"
-              }`}
+                }`}
             >
               <p className="mb-1 text-xs font-semibold opacity-75">{message.sender}</p>
               <p className="text-sm leading-relaxed">{message.text}</p>
@@ -100,6 +100,12 @@ const ChatArea = ({ activeConversation, onBack }) => {
             </div>
           </div>
         ))}
+
+        {!messages.length ? (
+          <div className="flex h-full items-center justify-center">
+            <p className="theme-muted text-sm">No messages yet.</p>
+          </div>
+        ) : null}
       </div>
 
       <footer className="theme-border border-t p-2 sm:p-3">
@@ -162,9 +168,8 @@ const ChatArea = ({ activeConversation, onBack }) => {
         />
 
         <aside
-          className={`absolute right-0 top-0 h-full w-full max-w-[360px] border-l theme-border bg-[var(--surface)] shadow-2xl transition sm:w-[320px] ${
-            showDetails ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
-          }`}
+          className={`absolute right-0 top-0 h-full w-full max-w-[360px] border-l theme-border bg-[var(--surface)] shadow-2xl transition sm:w-[320px] ${showDetails ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+            }`}
         >
           <div className="theme-border flex items-center justify-between border-b px-4 py-3">
             <div>
@@ -185,34 +190,34 @@ const ChatArea = ({ activeConversation, onBack }) => {
           <div className="h-full overflow-y-auto px-4 py-4">
             <div className="flex flex-col items-center text-center">
               <img
-                src={activeConversation.avatar}
-                alt={activeConversation.name}
+                src={activeConversation?.avatar}
+                alt={activeConversation?.name}
                 className="h-20 w-20 rounded-3xl object-cover"
               />
-              <h3 className="theme-text mt-3 text-lg font-semibold">{activeConversation.name}</h3>
+              <h3 className="theme-text mt-3 text-lg font-semibold">{activeConversation?.name}</h3>
               <p className="text-xs text-amber-500">
-                {activeConversation.online ? "Online" : "Offline"}
+                {activeConversation?.online ? "Online" : "Offline"}
               </p>
             </div>
 
             <div className="theme-border mt-4 rounded-2xl border p-3">
               <p className="theme-muted text-xs">About</p>
               <p className="theme-text mt-1 text-sm">
-                {activeConversation.about || "No status available."}
+                {activeConversation?.about || "No status available."}
               </p>
             </div>
 
             <div className="theme-border mt-3 rounded-2xl border p-3">
               <p className="theme-muted text-xs">Email</p>
               <p className="theme-text mt-1 text-sm">
-                {activeConversation.email || "Not provided"}
+                {activeConversation?.email || "Not provided"}
               </p>
             </div>
 
             <div className="theme-border mt-3 rounded-2xl border p-3">
               <p className="theme-muted text-xs">Phone</p>
               <p className="theme-text mt-1 text-sm">
-                {activeConversation.phone || "Not provided"}
+                {activeConversation?.phone || "Not provided"}
               </p>
             </div>
 
@@ -224,7 +229,7 @@ const ChatArea = ({ activeConversation, onBack }) => {
                 </button>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2">
-                {(activeConversation.media || []).slice(0, 6).map((item, index) => (
+                {(activeConversation?.media || []).slice(0, 6).map((item, index) => (
                   <img
                     key={`${item}-${index}`}
                     src={item}
@@ -233,7 +238,7 @@ const ChatArea = ({ activeConversation, onBack }) => {
                   />
                 ))}
               </div>
-              {!activeConversation.media?.length ? (
+              {!activeConversation?.media?.length ? (
                 <p className="theme-muted mt-2 text-xs">No media shared yet.</p>
               ) : null}
             </div>

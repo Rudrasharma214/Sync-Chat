@@ -21,6 +21,10 @@ const messageStatusSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        deletedForMe: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

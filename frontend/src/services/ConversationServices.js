@@ -4,9 +4,9 @@ import { logger } from "../utils/logger";
 /**
  * Create or get a direct conversation between two users
  */
-export const createOrGetDirectConversation = async (participantId) => {
+export const createOrGetDirectConversation = async (recipientId) => {
     try {
-        const response = await api.post("/conversations/direct", { participantId });
+        const response = await api.post("/conversations/direct", { recipientId });
         logger.info(
             "Create/get direct conversation API call successful",
             null,

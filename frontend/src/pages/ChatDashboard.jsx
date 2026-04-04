@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SidebarMenu from "../components/chat/SidebarMenu";
 import ConversationList from "../components/chat/ConversationList";
-import ChatArea from "../components/chat/ChatArea";
+import ChatWindow from "../components/chat/ChatWindow";
 import { useConversationById, useConversations } from "../hooks/useQueries/conversationQueries";
+import { useSocket } from "../hooks/useSocket";
 
 const FALLBACK_AVATAR =
   "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=140&q=80";
@@ -77,6 +78,7 @@ const ChatDashboard = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { authUser, logout } = useAuth();
+  const { socket } = useSocket();
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -92,29 +94,26 @@ const ChatDashboard = () => {
     [conversationsData]
   );
 
-  useEffect(() => {
+  const selectedConversationId = useMemo(() => {
     if (!conversations.length) {
-      setActiveConversationId(null);
-      return;
+      return null;
     }
 
     const hasCurrentSelection = conversations.some(
       (conversation) => conversation.id === activeConversationId
     );
 
-    if (!hasCurrentSelection) {
-      setActiveConversationId(conversations[0].id);
-    }
-  }, [conversations, activeConversationId]);
+    return hasCurrentSelection ? activeConversationId : conversations[0].id;
+  }, [activeConversationId, conversations]);
 
-  const { data: activeConversationDetails } = useConversationById(activeConversationId, {
-    enabled: Boolean(activeConversationId),
+  const { data: activeConversationDetails } = useConversationById(selectedConversationId, {
+    enabled: Boolean(selectedConversationId),
   });
 
   const activeConversation = useMemo(
     () => {
       const baseConversation =
-        conversations.find((conversation) => conversation.id === activeConversationId) || null;
+        conversations.find((conversation) => conversation.id === selectedConversationId) || null;
 
       if (!baseConversation) {
         return null;
@@ -124,7 +123,7 @@ const ChatDashboard = () => {
       const details = mapConversationDetails(activeConversationDetails, authUserId);
       return details ? { ...baseConversation, ...details } : baseConversation;
     },
-    [activeConversationDetails, activeConversationId, authUser, conversations]
+    [activeConversationDetails, authUser, conversations, selectedConversationId]
   );
 
   const handleSelectConversation = (conversationId) => {
@@ -175,7 +174,12 @@ const ChatDashboard = () => {
             className={isChatOpen ? "flex min-w-0 flex-1" : "hidden sm:flex sm:min-w-0 sm:flex-1"}
           >
             {activeConversation ? (
-              <ChatArea activeConversation={activeConversation} onBack={handleBackToList} />
+              <ChatWindow
+                socket={socket}
+                conversationId={activeConversation.id}
+                activeConversation={activeConversation}
+                onBack={handleBackToList}
+              />
             ) : (
               <section className="theme-surface flex h-full w-full items-center justify-center p-4 text-sm theme-muted">
                 Select a conversation to start chatting.

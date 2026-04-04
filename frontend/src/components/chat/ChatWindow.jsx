@@ -1,0 +1,140 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Phone, Search, Video } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useDeleteMessage, useUpdateMessage } from "../../hooks/useMutation/messageMutation";
+import MessageInput from "./MessageInput";
+import MessageList from "./MessageList";
+
+const iconBtnClass =
+    "inline-flex h-8 w-8 items-center justify-center rounded-lg border theme-border theme-muted bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500 sm:h-9 sm:w-9 sm:rounded-xl";
+
+const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
+    const { authUser } = useAuth();
+    const currentUserId = authUser?._id || authUser?.id || null;
+
+    const [isTyping, setIsTyping] = useState(false);
+    const typingTimeoutRef = useRef(null);
+
+    const updateMessageMutation = useUpdateMessage();
+    const deleteMessageMutation = useDeleteMessage();
+
+    useEffect(() => {
+        if (!socket || !conversationId) {
+            return;
+        }
+
+        socket.emit("joinConversation", conversationId);
+
+        return () => {
+            socket.emit("leaveConversation", conversationId);
+        };
+    }, [conversationId, socket]);
+
+    useEffect(() => {
+        if (!socket || !conversationId) {
+            return;
+        }
+
+        const handleTyping = ({ userId } = {}) => {
+            if (!userId || String(userId) === String(currentUserId)) {
+                return;
+            }
+
+            setIsTyping(true);
+
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+
+            typingTimeoutRef.current = setTimeout(() => {
+                setIsTyping(false);
+            }, 1200);
+        };
+
+        socket.on("typing", handleTyping);
+
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+            socket.off("typing", handleTyping);
+        };
+    }, [conversationId, currentUserId, socket]);
+
+    const typingText = useMemo(() => (isTyping ? "User is typing..." : ""), [isTyping]);
+
+    const handleEditMessage = useCallback(
+        async (messageId, content) => {
+            await updateMessageMutation.mutateAsync({ messageId, content });
+        },
+        [updateMessageMutation]
+    );
+
+    const handleDeleteMessage = useCallback(
+        async (messageId, type) => {
+            await deleteMessageMutation.mutateAsync({ messageId, type, conversationId });
+        },
+        [conversationId, deleteMessageMutation]
+    );
+
+    return (
+        <section className="theme-surface relative flex h-full min-w-0 flex-1 flex-col">
+            <header className="theme-border flex items-center justify-between border-b px-3 py-3 sm:px-5 sm:py-3">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="theme-border theme-muted inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500 sm:hidden"
+                        aria-label="Back to conversations"
+                        title="Back"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                    </button>
+
+                    <div className="flex min-w-0 items-center gap-2">
+                        <img
+                            src={activeConversation?.avatar}
+                            alt={activeConversation?.name}
+                            className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
+                        />
+                        <div className="min-w-0">
+                            <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
+                                {activeConversation?.name}
+                            </h2>
+                            <p className="text-xs text-amber-500">{typingText || "Online"}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button type="button" className="hidden sm:inline-flex" aria-label="Search in chat" title="Search in chat">
+                        <span className={iconBtnClass}>
+                            <Search className="h-4 w-4" />
+                        </span>
+                    </button>
+                    <button type="button" className="hidden sm:inline-flex" aria-label="Call" title="Call">
+                        <span className={iconBtnClass}>
+                            <Phone className="h-4 w-4" />
+                        </span>
+                    </button>
+                    <button type="button" className="hidden sm:inline-flex" aria-label="Video" title="Video">
+                        <span className={iconBtnClass}>
+                            <Video className="h-4 w-4" />
+                        </span>
+                    </button>
+                </div>
+            </header>
+
+            <MessageList
+                conversationId={conversationId}
+                currentUserId={currentUserId}
+                onEditMessage={handleEditMessage}
+                onDeleteMessage={handleDeleteMessage}
+            />
+
+            <MessageInput socket={socket} conversationId={conversationId} />
+        </section>
+    );
+};
+
+export default ChatWindow;

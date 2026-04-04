@@ -89,6 +89,20 @@ export const useMessages = (conversationId, limit = DEFAULT_LIMIT) => {
                 return;
             }
 
+            if (payload?.type === "everyone") {
+                queryClient.setQueryData(
+                    messageQueryKeys.byConversation(conversationId),
+                    (oldData) =>
+                        replaceMessage(oldData, {
+                            _id: deletedId,
+                            text: "This message was deleted",
+                            deletedForEveryone: true,
+                            isDeletedForEveryone: true,
+                        })
+                );
+                return;
+            }
+
             queryClient.setQueryData(
                 messageQueryKeys.byConversation(conversationId),
                 (oldData) => removeMessage(oldData, deletedId)

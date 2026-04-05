@@ -100,9 +100,12 @@ export const createOrGetDirectConversation = async (userId, recipientId) => {
  */
 export const getConversationWithValidation = async (conversationId, userId) => {
     try {
-        const conversation = await conversationRepo.getConversationById(conversationId)
-            .populate('participants', 'id fullname email profilepic')
-            .populate('groupId', 'name avatar createdBy');
+        const conversation = await conversationRepo.getConversationById(conversationId);
+
+        if (conversation) {
+            await conversation.populate('participants', 'id fullname email profilepic');
+            await conversation.populate('groupId', 'name avatar createdBy');
+        }
 
         if (!conversation) {
             return {

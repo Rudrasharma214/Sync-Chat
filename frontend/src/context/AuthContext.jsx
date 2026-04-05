@@ -14,8 +14,8 @@ const fallbackAuthContext = {
   login: async () => ({ success: false, message: "AuthProvider is missing" }),
   signup: async () => ({ success: false, message: "AuthProvider is missing" }),
   logout: async () => ({ success: false, message: "AuthProvider is missing" }),
-  updateAuthUser: () => {},
-  clearError: () => {},
+  updateAuthUser: () => { },
+  clearError: () => { },
 };
 
 /**

@@ -1,10 +1,12 @@
 import React from "react";
-import { MessageCircle, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 const ConversationList = ({
   conversations,
   activeConversationId,
   onSelectConversation,
+  searchValue = "",
+  onSearchChange,
   isLoading = false,
   isError = false,
   errorMessage = "",
@@ -24,6 +26,8 @@ const ConversationList = ({
             type="text"
             className="theme-input w-full rounded-xl border py-1.5 pl-10 pr-3 text-sm outline-none focus:border-amber-500"
             placeholder="Search"
+            value={searchValue}
+            onChange={(event) => onSearchChange?.(event.target.value)}
           />
         </div>
 
@@ -40,6 +44,10 @@ const ConversationList = ({
             <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
               No conversations yet.
             </div>
+          ) : !conversations.length ? (
+            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
+              No conversations found.
+            </div>
           ) : (
             <div className="space-y-2">
               {conversations.map((conversation) => {
@@ -51,8 +59,8 @@ const ConversationList = ({
                     key={conversation.id}
                     onClick={() => onSelectConversation(conversation.id)}
                     className={`w-full rounded-2xl border p-3 text-left transition ${isActive
-                        ? "border-amber-400/70 bg-amber-500/10"
-                        : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
+                      ? "border-amber-400/70 bg-amber-500/10"
+                      : "theme-border hover:border-amber-500/40 hover:bg-amber-500/5"
                       }`}
                   >
                     <div className="flex items-start gap-3">

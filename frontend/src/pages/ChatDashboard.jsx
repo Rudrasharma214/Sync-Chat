@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -81,13 +81,23 @@ const ChatDashboard = () => {
   const { socket } = useSocket();
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
 
   const {
     data: conversationsData,
     isLoading: isConversationsLoading,
     isError: isConversationsError,
     error: conversationsError,
-  } = useConversations();
+  } = useConversations(debouncedSearchTerm);
 
   const conversations = useMemo(
     () => (Array.isArray(conversationsData) ? conversationsData.map(mapConversationListItem) : []),
@@ -164,6 +174,8 @@ const ChatDashboard = () => {
               conversations={conversations}
               activeConversationId={activeConversation?.id}
               onSelectConversation={handleSelectConversation}
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
               isLoading={isConversationsLoading}
               isError={isConversationsError}
               errorMessage={conversationsError?.message}

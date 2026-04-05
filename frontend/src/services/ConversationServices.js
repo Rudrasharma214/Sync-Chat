@@ -33,9 +33,11 @@ export const createOrGetDirectConversation = async (recipientId) => {
 /**
  * Get all conversations (direct + group) for authenticated user
  */
-export const getAllConversations = async () => {
+export const getAllConversations = async (searchTerm = "") => {
     try {
-        const response = await api.get("/conversations");
+        const response = await api.get("/conversations", {
+            params: searchTerm ? { search: searchTerm } : undefined,
+        });
         logger.info("Get conversations API call successful", null, "ConversationServices");
         return {
             success: true,

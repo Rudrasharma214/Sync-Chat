@@ -142,7 +142,7 @@ export const getConversationWithValidation = async (conversationId, userId) => {
  * @param {string} userId - Current user ID
  * @returns {object} Response object with success, statusCode, message, data
  */
-export const getAllConversations = async (userId) => {
+export const getAllConversations = async (userId, searchTerm = "") => {
     try {
         if (!userId) {
             return {
@@ -183,11 +183,23 @@ export const getAllConversations = async (userId) => {
             };
         });
 
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+        const filteredConversations = normalizedSearch
+            ? normalizedConversations.filter((conversation) => {
+                const directName = conversation?.otherParticipant?.fullname || "";
+                const groupName = conversation?.group?.name || "";
+                const lastMessageText = conversation?.lastMessage?.text || "";
+
+                const searchableText = `${directName} ${groupName} ${lastMessageText}`.toLowerCase();
+                return searchableText.includes(normalizedSearch);
+            })
+            : normalizedConversations;
+
         return {
             success: true,
             statusCode: STATUS.OK,
             message: "Conversations fetched successfully",
-            data: normalizedConversations,
+            data: filteredConversations,
         };
     } catch (error) {
         return {

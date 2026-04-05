@@ -62,8 +62,9 @@ export const getConversation = async (req, res, next) => {
 export const getAllConversations = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
+        const searchTerm = typeof req.query?.search === "string" ? req.query.search : "";
 
-        const result = await conversationService.getAllConversations(userId);
+        const result = await conversationService.getAllConversations(userId, searchTerm);
 
         if (!result.success) {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);

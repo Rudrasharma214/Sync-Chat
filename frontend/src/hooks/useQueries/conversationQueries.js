@@ -3,15 +3,15 @@ import * as conversationService from "../../services/ConversationServices";
 import { logger } from "../../utils/logger";
 
 export const conversationQueryKeys = {
-    all: ["conversations"],
+    all: (searchTerm = "") => ["conversations", { search: searchTerm }],
     byId: (conversationId) => ["conversations", conversationId],
 };
 
-export const useConversations = () => {
+export const useConversations = (searchTerm = "") => {
     return useQuery({
-        queryKey: conversationQueryKeys.all,
+        queryKey: conversationQueryKeys.all(searchTerm),
         queryFn: async () => {
-            const result = await conversationService.getAllConversations();
+            const result = await conversationService.getAllConversations(searchTerm);
             if (!result.success) {
                 throw new Error(result.message || "Failed to load conversations");
             }

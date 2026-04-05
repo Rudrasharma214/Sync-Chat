@@ -50,7 +50,7 @@ const emitOnlineUsers = async () => {
     return;
   }
 
-  const onlineUsers = await pubClient.sMembers(ONLINE_USERS_KEY);
+  const onlineUsers = await pubClient.smembers(ONLINE_USERS_KEY);
   io.emit("onlineUsers", onlineUsers);
 };
 
@@ -59,7 +59,7 @@ const trackOnlineUser = async (userId) => {
     return;
   }
 
-  await pubClient.sAdd(ONLINE_USERS_KEY, String(userId));
+  await pubClient.sadd(ONLINE_USERS_KEY, String(userId));
   await emitOnlineUsers();
 };
 
@@ -68,7 +68,7 @@ const untrackOnlineUser = async (userId) => {
     return;
   }
 
-  await pubClient.sRem(ONLINE_USERS_KEY, String(userId));
+  await pubClient.srem(ONLINE_USERS_KEY, String(userId));
   await emitOnlineUsers();
 };
 

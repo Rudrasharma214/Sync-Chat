@@ -7,6 +7,9 @@ import ConversationList from "../components/chat/ConversationList";
 import ChatWindow from "../components/chat/ChatWindow";
 import { useConversationById, useConversations } from "../hooks/useQueries/conversationQueries";
 import { useSocket } from "../hooks/useSocket";
+import { useSearchUsers } from "../hooks/useQueries/authQueries";
+import { useCreateOrGetDirectConversation } from "../hooks/useMutation/conversationMutation";
+import { logger } from "../utils/logger";
 
 const FALLBACK_AVATAR =
   "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=140&q=80";
@@ -83,6 +86,7 @@ const ChatDashboard = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const createOrGetDirectConversation = useCreateOrGetDirectConversation();
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -98,6 +102,13 @@ const ChatDashboard = () => {
     isError: isConversationsError,
     error: conversationsError,
   } = useConversations(debouncedSearchTerm);
+
+  const {
+    data: searchedUsers = [],
+    isLoading: isUserSearchLoading,
+  } = useSearchUsers(debouncedSearchTerm, {
+    enabled: Boolean(debouncedSearchTerm),
+  });
 
   const conversations = useMemo(
     () => (Array.isArray(conversationsData) ? conversationsData.map(mapConversationListItem) : []),
@@ -141,6 +152,21 @@ const ChatDashboard = () => {
     setIsChatOpen(true);
   };
 
+  const handleSelectUser = async (userId) => {
+    try {
+      const conversation = await createOrGetDirectConversation.mutateAsync(userId);
+      const nextConversationId = conversation?._id;
+
+      if (nextConversationId) {
+        setActiveConversationId(nextConversationId);
+        setIsChatOpen(true);
+        setSearchTerm("");
+      }
+    } catch (error) {
+      logger.error("Failed to create/select direct conversation", error, "ChatDashboard");
+    }
+  };
+
   const handleBackToList = () => {
     setIsChatOpen(false);
   };
@@ -176,6 +202,9 @@ const ChatDashboard = () => {
               onSelectConversation={handleSelectConversation}
               searchValue={searchTerm}
               onSearchChange={setSearchTerm}
+              searchedUsers={searchedUsers}
+              isUserSearchLoading={isUserSearchLoading}
+              onSelectUser={handleSelectUser}
               isLoading={isConversationsLoading}
               isError={isConversationsError}
               errorMessage={conversationsError?.message}

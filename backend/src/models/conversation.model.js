@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "./group.model.js";
 
 const conversationSchema = new mongoose.Schema(
     {

@@ -109,3 +109,22 @@ export const getMe = async () => {
     };
   }
 };
+
+/**
+ * Search users by name/email for starting direct chat
+ */
+export const searchUsers = async (searchTerm = "") => {
+  try {
+    const response = await api.get("/auth/users/search", {
+      params: searchTerm ? { search: searchTerm } : undefined,
+    });
+    logger.info("Search users API call successful", null, "AuthServices");
+    return { success: true, data: response.data.data };
+  } catch (error) {
+    logger.error("Search users API call failed", error.response?.data, "AuthServices");
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+    };
+  }
+};

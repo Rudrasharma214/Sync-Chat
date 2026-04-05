@@ -7,10 +7,15 @@ const ConversationList = ({
   onSelectConversation,
   searchValue = "",
   onSearchChange,
+  searchedUsers = [],
+  isUserSearchLoading = false,
+  onSelectUser,
   isLoading = false,
   isError = false,
   errorMessage = "",
 }) => {
+  const hasSearchTerm = Boolean(searchValue.trim());
+
   return (
     <section className="theme-surface flex h-full w-full flex-col theme-border sm:w-[300px] sm:border-r lg:w-[320px]">
       <div className="flex h-full min-h-0 flex-col p-4 sm:p-5">
@@ -40,15 +45,7 @@ const ConversationList = ({
             <div className="flex h-full items-center justify-center py-8 text-center text-sm theme-muted">
               {errorMessage || "Unable to load conversations right now."}
             </div>
-          ) : !conversations.length ? (
-            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
-              No conversations yet.
-            </div>
-          ) : !conversations.length ? (
-            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
-              No conversations found.
-            </div>
-          ) : (
+          ) : conversations.length ? (
             <div className="space-y-2">
               {conversations.map((conversation) => {
                 const isActive = conversation.id === activeConversationId;
@@ -90,6 +87,41 @@ const ConversationList = ({
                   </button>
                 );
               })}
+            </div>
+          ) : hasSearchTerm && isUserSearchLoading ? (
+            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
+              Searching users...
+            </div>
+          ) : hasSearchTerm && searchedUsers.length ? (
+            <div className="space-y-2">
+              {searchedUsers.map((user) => (
+                <button
+                  type="button"
+                  key={user._id}
+                  onClick={() => onSelectUser?.(user._id)}
+                  className="theme-border w-full rounded-2xl border p-3 text-left transition hover:border-amber-500/40 hover:bg-amber-500/5"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={user.profilepic || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=140&q=80"}
+                      alt={user.fullname}
+                      className="h-11 w-11 rounded-xl object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="theme-text truncate text-sm font-semibold">{user.fullname}</p>
+                      <p className="theme-muted truncate text-xs">{user.email}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : hasSearchTerm ? (
+            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
+              No conversations found.
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
+              No conversations yet.
             </div>
           )}
         </div>

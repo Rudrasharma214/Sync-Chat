@@ -25,3 +25,23 @@ export const verifyRefreshToken = async (userId, refreshToken) => {
 export const clearRefreshToken = async (id) => {
     return await User.findByIdAndUpdate(id, { refreshToken: null }, { new: true });
 }
+
+export const searchUsersForDirectChat = async (currentUserId, searchTerm, limit = 20) => {
+    const trimmedSearch = String(searchTerm || "").trim();
+
+    if (!trimmedSearch) {
+        return [];
+    }
+
+    const searchRegex = new RegExp(trimmedSearch, "i");
+
+    return await User.find({
+        _id: { $ne: currentUserId },
+        $or: [
+            { fullname: searchRegex },
+            { email: searchRegex },
+        ],
+    })
+        .select("fullname email profilepic")
+        .limit(limit);
+};

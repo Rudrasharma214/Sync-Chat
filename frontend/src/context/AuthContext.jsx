@@ -5,6 +5,19 @@ import { logger } from "../utils/logger";
 
 const AuthContext = createContext();
 
+const fallbackAuthContext = {
+  authUser: null,
+  isCheckingAuth: false,
+  isLoading: false,
+  error: "AuthProvider is missing",
+  checkAuth: async () => ({ success: false, message: "AuthProvider is missing" }),
+  login: async () => ({ success: false, message: "AuthProvider is missing" }),
+  signup: async () => ({ success: false, message: "AuthProvider is missing" }),
+  logout: async () => ({ success: false, message: "AuthProvider is missing" }),
+  updateAuthUser: () => {},
+  clearError: () => {},
+};
+
 /**
  * AuthProvider - Provides global auth state and methods
  * Backend uses httpOnly cookies for token storage
@@ -170,7 +183,8 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    logger.error("useAuth called outside AuthProvider", null, "AuthContext");
+    return fallbackAuthContext;
   }
   return context;
 };

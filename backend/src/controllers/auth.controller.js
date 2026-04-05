@@ -156,3 +156,21 @@ export const getMe = async (req, res, next) => {
         next(error);
     }
 };
+
+// Search users for starting direct conversations
+export const searchUsers = async (req, res, next) => {
+    try {
+        const { _id: userId } = req.user;
+        const searchTerm = typeof req.query?.search === "string" ? req.query.search : "";
+
+        const result = await authService.searchUsersForChat(userId, searchTerm);
+
+        if (!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
+        }
+
+        return sendResponse(res, result.statusCode, result.message, result.data);
+    } catch (error) {
+        next(error);
+    }
+};

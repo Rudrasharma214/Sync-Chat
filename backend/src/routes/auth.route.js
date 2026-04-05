@@ -46,6 +46,13 @@ router.patch("/change-password", authenticate, authController.changePassword);
  */
 router.get("/me", authenticate, authController.getMe);
 
+/**
+ * @route GET /api/auth/users/search
+ * @desc Search users by name or email (excluding current user)
+ * @access Private
+ */
+router.get("/users/search", authenticate, authController.searchUsers);
+
 export default router;
 
 

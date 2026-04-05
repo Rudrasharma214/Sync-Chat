@@ -20,7 +20,7 @@ export const useCreateOrGetDirectConversation = () => {
                 null,
                 "useCreateOrGetDirectConversation"
             );
-            queryClient.invalidateQueries({ queryKey: conversationQueryKeys.all });
+            queryClient.invalidateQueries({ queryKey: ["conversations"] });
         },
         onError: (error) => {
             logger.error(

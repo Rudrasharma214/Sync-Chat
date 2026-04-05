@@ -185,3 +185,32 @@ export const refreshToken = async (userId, refreshToken) => {
         };
     }
 };
+
+// Search users by name/email (excluding current user) for starting direct chats
+export const searchUsersForChat = async (currentUserId, searchTerm) => {
+    try {
+        if (!currentUserId) {
+            return {
+                success: false,
+                statusCode: STATUS.BAD_REQUEST,
+                message: "User ID is required"
+            };
+        }
+
+        const users = await userRepo.searchUsersForDirectChat(currentUserId, searchTerm, 20);
+
+        return {
+            success: true,
+            statusCode: STATUS.OK,
+            message: "Users fetched successfully",
+            data: users,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            statusCode: STATUS.INTERNAL_ERROR,
+            message: "Error searching users",
+            error: error.message,
+        };
+    }
+};

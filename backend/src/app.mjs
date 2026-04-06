@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import conversationRoutes from "./routes/conversation.route.js";
 import messageRoutes from "./routes/message.route.js";
+import groupRoutes from "./routes/group.route.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { corsOptions } from "./config/corsOptions.js";
 
@@ -21,6 +22,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/groups", groupRoutes);
 
 
 app.use(errorHandler)

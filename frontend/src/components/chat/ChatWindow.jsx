@@ -51,7 +51,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
         };
     }, [conversationId, currentUserId, socket]);
 
-    const typingText = useMemo(() => (isTyping ? "User is typing..." : ""), [isTyping]);
+    const typingText = useMemo(() => (isTyping ? "typing..." : ""), [isTyping]);
     const presenceText = useMemo(() => {
         if (typingText) {
             return typingText;

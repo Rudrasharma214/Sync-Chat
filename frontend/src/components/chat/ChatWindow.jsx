@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Phone, Search, Video } from "lucide-react";
+import { ArrowLeft, Phone, Search, X, Video } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useDeleteMessage, useUpdateMessage } from "../../hooks/useMutation/messageMutation";
 import MessageInput from "./MessageInput";
@@ -13,6 +13,8 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     const currentUserId = authUser?._id || authUser?.id || null;
 
     const [isTyping, setIsTyping] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const typingTimeoutRef = useRef(null);
 
     const updateMessageMutation = useUpdateMessage();
@@ -72,9 +74,26 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
         [conversationId, deleteMessageMutation]
     );
 
+    const handleToggleSearch = () => {
+        setIsSearchOpen((prev) => {
+            const nextValue = !prev;
+
+            if (!nextValue) {
+                setSearchTerm("");
+            }
+
+            return nextValue;
+        });
+    };
+
+    const handleClearSearch = () => {
+        setSearchTerm("");
+        setIsSearchOpen(false);
+    };
+
     return (
         <section className="theme-surface relative flex h-full min-w-0 flex-1 flex-col">
-            <header className="theme-border flex items-center justify-between border-b px-3 py-3 sm:px-5 sm:py-3">
+            <header className="theme-border flex items-center justify-between gap-3 border-b px-3 py-3 sm:px-5 sm:py-3">
                 <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                     <button
                         type="button"
@@ -101,8 +120,33 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <button type="button" className="hidden sm:inline-flex" aria-label="Search in chat" title="Search in chat">
+                <div className="flex min-w-0 items-center gap-2">
+                    {isSearchOpen ? (
+                        <div className="theme-border flex w-[min(340px,55vw)] items-center gap-2 rounded-xl border bg-[var(--surface-soft)] px-3 py-2">
+                            <Search className="theme-muted h-4 w-4 shrink-0" />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(event) => setSearchTerm(event.target.value)}
+                                placeholder="Search messages"
+                                className="theme-text w-full bg-transparent text-sm outline-none placeholder:theme-muted"
+                                autoFocus
+                            />
+                            {searchTerm ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchTerm("")}
+                                    className="theme-muted transition hover:text-amber-500"
+                                    aria-label="Clear search"
+                                    title="Clear search"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            ) : null}
+                        </div>
+                    ) : null}
+
+                    <button type="button" className="hidden sm:inline-flex" onClick={handleToggleSearch} aria-label="Search in chat" title="Search in chat">
                         <span className={iconBtnClass}>
                             <Search className="h-4 w-4" />
                         </span>
@@ -124,6 +168,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                 socket={socket}
                 conversationId={conversationId}
                 currentUserId={currentUserId}
+                searchTerm={searchTerm}
                 onEditMessage={handleEditMessage}
                 onDeleteMessage={handleDeleteMessage}
             />

@@ -9,8 +9,19 @@ const getMessageTimestamp = (message) => {
 };
 
 const getMessageId = (message) => message?._id || message?.id;
+const getSenderName = (message) => {
+    const senderRef = message?.senderId;
 
-const MessageList = ({ socket, conversationId, currentUserId, onEditMessage, onDeleteMessage }) => {
+    if (typeof senderRef === "object") {
+        return senderRef?.fullname || senderRef?.name || "";
+    }
+
+    return "";
+};
+
+const normalizeText = (value = "") => String(value).trim().toLowerCase();
+
+const MessageList = ({ socket, conversationId, currentUserId, searchTerm = "", onEditMessage, onDeleteMessage }) => {
     const endRef = useRef(null);
 
     const { data, isLoading } = useMessages(conversationId, undefined, socket);
@@ -22,15 +33,35 @@ const MessageList = ({ socket, conversationId, currentUserId, onEditMessage, onD
         return [...flattened].sort((a, b) => getMessageTimestamp(a) - getMessageTimestamp(b));
     }, [data]);
 
-    const latestMessageId = messages.length ? getMessageId(messages[messages.length - 1]) : null;
+    const filteredMessages = useMemo(() => {
+        const query = normalizeText(searchTerm);
+
+        if (!query) {
+            return messages;
+        }
+
+        return messages.filter((message) => {
+            const messageText = normalizeText(message?.text || "");
+            const senderName = normalizeText(getSenderName(message));
+            const deletedText = normalizeText("This message was deleted");
+
+            return (
+                messageText.includes(query) ||
+                senderName.includes(query) ||
+                deletedText.includes(query)
+            );
+        });
+    }, [messages, searchTerm]);
+
+    const latestMessageId = filteredMessages.length ? getMessageId(filteredMessages[filteredMessages.length - 1]) : null;
 
     useEffect(() => {
-        if (!latestMessageId) {
+        if (!latestMessageId || searchTerm.trim()) {
             return;
         }
 
         endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, [latestMessageId]);
+    }, [latestMessageId, searchTerm]);
 
     if (isLoading) {
         return (
@@ -48,10 +79,18 @@ const MessageList = ({ socket, conversationId, currentUserId, onEditMessage, onD
         );
     }
 
+    if (searchTerm.trim() && !filteredMessages.length) {
+        return (
+            <div className="flex flex-1 items-center justify-center px-4 py-6 text-sm theme-muted">
+                No messages found for &quot;{searchTerm.trim()}&quot;.
+            </div>
+        );
+    }
+
     return (
         <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-5 sm:py-4">
             <div className="space-y-3">
-                {messages.map((message) => (
+                {filteredMessages.map((message) => (
                     <MessageItem
                         key={getMessageId(message)}
                         message={message}

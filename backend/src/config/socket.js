@@ -7,6 +7,7 @@ import { getRedisClient } from "../redis/redisConnection.js";
 import * as conversationRepo from "../repositories/conversation.repositories.js";
 
 const ONLINE_USERS_KEY = "online_users";
+const USER_SOCKET_COUNT_KEY = "online_user_socket_counts";
 
 let io;
 let pubClient;
@@ -59,7 +60,13 @@ const trackOnlineUser = async (userId) => {
     return;
   }
 
-  await pubClient.sadd(ONLINE_USERS_KEY, String(userId));
+  const normalizedUserId = String(userId);
+  const socketCount = await pubClient.hincrby(USER_SOCKET_COUNT_KEY, normalizedUserId, 1);
+
+  if (socketCount === 1) {
+    await pubClient.sadd(ONLINE_USERS_KEY, normalizedUserId);
+  }
+
   await emitOnlineUsers();
 };
 
@@ -68,7 +75,14 @@ const untrackOnlineUser = async (userId) => {
     return;
   }
 
-  await pubClient.srem(ONLINE_USERS_KEY, String(userId));
+  const normalizedUserId = String(userId);
+  const socketCount = await pubClient.hincrby(USER_SOCKET_COUNT_KEY, normalizedUserId, -1);
+
+  if (socketCount <= 0) {
+    await pubClient.hdel(USER_SOCKET_COUNT_KEY, normalizedUserId);
+    await pubClient.srem(ONLINE_USERS_KEY, normalizedUserId);
+  }
+
   await emitOnlineUsers();
 };
 
@@ -84,6 +98,15 @@ const canJoinConversation = async (conversationId, userId) => {
   }
 
   return conversation.participants.some((participantId) => participantId.toString() === String(userId));
+};
+
+const getConversationIdsForUser = async (userId) => {
+  if (!userId) {
+    return [];
+  }
+
+  const conversations = await conversationRepo.getConversationsByParticipantId(userId);
+  return conversations.map((conversation) => String(conversation._id));
 };
 
 const joinConversationRoom = async (socket, conversationId, userId) => {
@@ -171,6 +194,11 @@ export const initSocket = (server) => {
 
     try {
       socket.join(userId);
+
+      const userConversationIds = await getConversationIdsForUser(userId);
+      for (const conversationId of userConversationIds) {
+        socket.join(conversationId);
+      }
 
       const initialConversationId = socket.handshake.auth?.conversationId;
       if (initialConversationId) {

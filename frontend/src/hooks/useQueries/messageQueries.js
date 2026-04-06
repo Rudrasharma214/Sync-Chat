@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import * as messageService from "../../services/message.service";
-import { getSocket } from "../../services/socket.service";
 import { logger } from "../../utils/logger";
 import {
     appendMessage,
@@ -13,7 +12,7 @@ import {
 
 const DEFAULT_LIMIT = 20;
 
-export const useMessages = (conversationId, limit = DEFAULT_LIMIT) => {
+export const useMessages = (conversationId, limit = DEFAULT_LIMIT, socket = null) => {
     const queryClient = useQueryClient();
     const queryKey = messageQueryKeys.byConversation(conversationId);
 
@@ -40,16 +39,17 @@ export const useMessages = (conversationId, limit = DEFAULT_LIMIT) => {
     });
 
     useEffect(() => {
-        if (!conversationId) {
+        if (!conversationId || !socket) {
             return;
         }
 
-        const socket = getSocket();
-        if (!socket) {
-            return;
-        }
+        const joinConversation = () => {
+            socket.emit("joinConversation", conversationId);
+        };
 
-        socket.emit("joinConversation", conversationId);
+        if (socket.connected) {
+            joinConversation();
+        }
 
         const handleNewMessage = (incomingMessage) => {
             if (!incomingMessage) {
@@ -109,17 +109,19 @@ export const useMessages = (conversationId, limit = DEFAULT_LIMIT) => {
             );
         };
 
+        socket.on("connect", joinConversation);
         socket.on("newMessage", handleNewMessage);
         socket.on("messageUpdated", handleMessageUpdated);
         socket.on("messageDeleted", handleMessageDeleted);
 
         return () => {
+            socket.off("connect", joinConversation);
             socket.emit("leaveConversation", conversationId);
             socket.off("newMessage", handleNewMessage);
             socket.off("messageUpdated", handleMessageUpdated);
             socket.off("messageDeleted", handleMessageDeleted);
         };
-    }, [conversationId, queryClient]);
+    }, [conversationId, queryClient, socket]);
 
     return query;
 };

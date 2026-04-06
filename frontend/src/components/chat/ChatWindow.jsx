@@ -23,18 +23,6 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
             return;
         }
 
-        socket.emit("joinConversation", conversationId);
-
-        return () => {
-            socket.emit("leaveConversation", conversationId);
-        };
-    }, [conversationId, socket]);
-
-    useEffect(() => {
-        if (!socket || !conversationId) {
-            return;
-        }
-
         const handleTyping = ({ userId } = {}) => {
             if (!userId || String(userId) === String(currentUserId)) {
                 return;
@@ -62,6 +50,13 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     }, [conversationId, currentUserId, socket]);
 
     const typingText = useMemo(() => (isTyping ? "User is typing..." : ""), [isTyping]);
+    const presenceText = useMemo(() => {
+        if (typingText) {
+            return typingText;
+        }
+
+        return activeConversation?.online ? "Online" : "Offline";
+    }, [activeConversation?.online, typingText]);
 
     const handleEditMessage = useCallback(
         async (messageId, content) => {
@@ -101,7 +96,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                             <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
                                 {activeConversation?.name}
                             </h2>
-                            <p className="text-xs text-amber-500">{typingText || "Online"}</p>
+                            <p className="text-xs text-amber-500">{presenceText}</p>
                         </div>
                     </div>
                 </div>
@@ -126,6 +121,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
             </header>
 
             <MessageList
+                socket={socket}
                 conversationId={conversationId}
                 currentUserId={currentUserId}
                 onEditMessage={handleEditMessage}

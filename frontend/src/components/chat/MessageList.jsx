@@ -10,10 +10,10 @@ const getMessageTimestamp = (message) => {
 
 const getMessageId = (message) => message?._id || message?.id;
 
-const MessageList = ({ conversationId, currentUserId, onEditMessage, onDeleteMessage }) => {
+const MessageList = ({ socket, conversationId, currentUserId, onEditMessage, onDeleteMessage }) => {
     const endRef = useRef(null);
 
-    const { data, isLoading } = useMessages(conversationId);
+    const { data, isLoading } = useMessages(conversationId, undefined, socket);
 
     const messages = useMemo(() => {
         const pages = data?.pages || [];

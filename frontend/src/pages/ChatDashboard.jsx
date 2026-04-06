@@ -32,6 +32,7 @@ const mapConversationListItem = (conversation) => {
   const directParticipant = conversation?.otherParticipant;
   const group = conversation?.group;
   const lastMessageText = conversation?.lastMessage?.text?.trim();
+  const participantId = directParticipant?._id || directParticipant?.id || null;
 
   return {
     id: conversation?._id,
@@ -42,6 +43,7 @@ const mapConversationListItem = (conversation) => {
     preview: lastMessageText || "No messages yet",
     time: formatConversationTime(conversation?.lastMessageAt),
     unread: 0,
+    participantId,
     online: false,
     email: directParticipant?.email || "",
     phone: "",
@@ -69,6 +71,7 @@ const mapConversationDetails = (conversation, authUserId) => {
     id: conversation._id,
     name: (isDirect ? directParticipant?.fullname : group?.name) || "Conversation",
     avatar: (isDirect ? directParticipant?.profilepic : group?.avatar) || FALLBACK_AVATAR,
+    participantId: directParticipant?._id || directParticipant?.id || null,
     email: directParticipant?.email || "",
     about: group?.description || "",
     phone: "",
@@ -83,6 +86,7 @@ const ChatDashboard = () => {
   const { authUser, logout } = useAuth();
   const { socket } = useSocket();
   const [activeConversationId, setActiveConversationId] = useState(null);
+  const [onlineUserIds, setOnlineUserIds] = useState(() => new Set());
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -110,9 +114,43 @@ const ChatDashboard = () => {
     enabled: Boolean(debouncedSearchTerm),
   });
 
+  useEffect(() => {
+    if (!socket) {
+      setOnlineUserIds(new Set());
+      return;
+    }
+
+    const handleOnlineUsers = (onlineUsers = []) => {
+      const normalized = Array.isArray(onlineUsers)
+        ? onlineUsers.map((userId) => String(userId))
+        : [];
+      setOnlineUserIds(new Set(normalized));
+    };
+
+    socket.on("onlineUsers", handleOnlineUsers);
+
+    return () => {
+      socket.off("onlineUsers", handleOnlineUsers);
+    };
+  }, [socket]);
+
   const conversations = useMemo(
-    () => (Array.isArray(conversationsData) ? conversationsData.map(mapConversationListItem) : []),
-    [conversationsData]
+    () => {
+      if (!Array.isArray(conversationsData)) {
+        return [];
+      }
+
+      return conversationsData.map((conversation) => {
+        const mappedConversation = mapConversationListItem(conversation);
+        const participantId = mappedConversation.participantId;
+
+        return {
+          ...mappedConversation,
+          online: Boolean(participantId && onlineUserIds.has(String(participantId))),
+        };
+      });
+    },
+    [conversationsData, onlineUserIds]
   );
 
   const selectedConversationId = useMemo(() => {
@@ -142,9 +180,20 @@ const ChatDashboard = () => {
 
       const authUserId = authUser?.id || authUser?._id;
       const details = mapConversationDetails(activeConversationDetails, authUserId);
-      return details ? { ...baseConversation, ...details } : baseConversation;
+      if (!details) {
+        return baseConversation;
+      }
+
+      const participantId = details.participantId || baseConversation.participantId;
+
+      return {
+        ...baseConversation,
+        ...details,
+        participantId,
+        online: Boolean(participantId && onlineUserIds.has(String(participantId))),
+      };
     },
-    [activeConversationDetails, authUser, conversations, selectedConversationId]
+    [activeConversationDetails, authUser, conversations, onlineUserIds, selectedConversationId]
   );
 
   const handleSelectConversation = (conversationId) => {

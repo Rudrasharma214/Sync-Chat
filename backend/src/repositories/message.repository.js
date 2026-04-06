@@ -79,7 +79,7 @@ export const getPaginatedMessagesByConversation = async (conversationId, userId,
 };
 
 export const updateMessageById = async (messageId, updateData) => {
-    return await Message.findByIdAndUpdate(messageId, updateData, { new: true });
+    return await Message.findByIdAndUpdate(messageId, updateData, { returnDocument: "after" });
 };
 
 export const upsertDeleteForMeStatus = async (messageId, userId) => {

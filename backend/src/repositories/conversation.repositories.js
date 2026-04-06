@@ -25,7 +25,7 @@ export const getConversationsByParticipantId = async (userId) => {
 };
 
 export const updateConversation = async (id, updateData) => {
-    return await Conversation.findByIdAndUpdate(id, updateData, { new: true });
+    return await Conversation.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
 };
 
 export const deleteConversation = async (id) => {

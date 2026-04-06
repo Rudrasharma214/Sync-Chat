@@ -42,7 +42,7 @@ export const getUnreadStatusesByUserId = async (userId, limit = 20) => {
 };
 
 export const updateMessageStatus = async (id, updateData) => {
-    return await MessageStatus.findByIdAndUpdate(id, updateData, { new: true });
+    return await MessageStatus.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
 };
 
 export const upsertMessageStatus = async (messageId, userId, updateData) => {

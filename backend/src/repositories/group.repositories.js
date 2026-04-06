@@ -14,7 +14,7 @@ export const getGroupsByMemberId = async (userId) => {
 };
 
 export const updateGroup = async (id, updateData) => {
-    return await Group.findByIdAndUpdate(id, updateData, { new: true });
+    return await Group.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
 };
 
 export const deleteGroup = async (id) => {

@@ -14,7 +14,7 @@ export const getMessagesByConversationId = async (conversationId) => {
 };
 
 export const updateMessage = async (id, updateData) => {
-    return await Message.findByIdAndUpdate(id, updateData, { new: true });
+    return await Message.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
 };
 
 export const deleteMessage = async (id) => {

@@ -14,7 +14,7 @@ export const getUserById = async (id) => {
 };
 
 export const updateUser = async (id, updateData) => {
-    return await User.findByIdAndUpdate(id, updateData, { new: true });
+    return await User.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
 };
 
 export const verifyRefreshToken = async (userId, refreshToken) => {
@@ -23,7 +23,7 @@ export const verifyRefreshToken = async (userId, refreshToken) => {
 };
 
 export const clearRefreshToken = async (id) => {
-    return await User.findByIdAndUpdate(id, { refreshToken: null }, { new: true });
+    return await User.findByIdAndUpdate(id, { refreshToken: null }, { returnDocument: "after" });
 }
 
 export const searchUsersForDirectChat = async (currentUserId, searchTerm, limit = 20) => {

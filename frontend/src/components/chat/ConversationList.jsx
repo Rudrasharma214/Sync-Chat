@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Search } from "lucide-react";
 
 const ConversationList = ({
   conversations,
   activeConversationId,
   onSelectConversation,
+  onLoadMore,
+  hasNextPage = false,
+  isFetchingNextPage = false,
   searchValue = "",
   onSearchChange,
   searchedUsers = [],
@@ -15,6 +18,40 @@ const ConversationList = ({
   errorMessage = "",
 }) => {
   const hasSearchTerm = Boolean(searchValue.trim());
+  const listRef = useRef(null);
+  const isFetchingRef = useRef(false);
+
+  useEffect(() => {
+    isFetchingRef.current = isFetchingNextPage;
+  }, [isFetchingNextPage]);
+
+  const handleScroll = () => {
+    if (!hasNextPage || isFetchingRef.current) {
+      return;
+    }
+
+    const element = listRef.current;
+    if (!element) {
+      return;
+    }
+
+    const remaining = element.scrollHeight - element.scrollTop - element.clientHeight;
+    if (remaining < 120) {
+      onLoadMore?.();
+    }
+  };
+
+  const footerText = useMemo(() => {
+    if (isFetchingNextPage) {
+      return "Loading more conversations...";
+    }
+
+    if (!hasNextPage && conversations.length) {
+      return "No more conversations.";
+    }
+
+    return "";
+  }, [conversations.length, hasNextPage, isFetchingNextPage]);
 
   return (
     <section className="theme-surface flex h-full w-full flex-col theme-border sm:w-[300px] sm:border-r lg:w-[320px]">
@@ -36,7 +73,7 @@ const ConversationList = ({
           />
         </div>
 
-        <div className="mt-4 min-h-0 overflow-y-auto pr-1">
+        <div ref={listRef} onScroll={handleScroll} className="mt-4 min-h-0 overflow-y-auto pr-1">
           {isLoading ? (
             <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">
               Loading conversations...
@@ -46,7 +83,7 @@ const ConversationList = ({
               {errorMessage || "Unable to load conversations right now."}
             </div>
           ) : conversations.length ? (
-            <div className="space-y-2">
+            <div className="space-y-2 pb-3">
               {conversations.map((conversation) => {
                 const isActive = conversation.id === activeConversationId;
 
@@ -87,6 +124,9 @@ const ConversationList = ({
                   </button>
                 );
               })}
+              {footerText ? (
+                <div className="py-2 text-center text-xs theme-muted">{footerText}</div>
+              ) : null}
             </div>
           ) : hasSearchTerm && isUserSearchLoading ? (
             <div className="flex h-full items-center justify-center py-8 text-sm theme-muted">

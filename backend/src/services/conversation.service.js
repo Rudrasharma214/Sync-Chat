@@ -213,3 +213,97 @@ export const getAllConversations = async (userId, searchTerm = "") => {
         };
     }
 };
+
+/**
+ * Get paginated conversations for current user (direct + group)
+ * @param {string} userId - Current user ID
+ * @param {string} searchTerm - Search term for conversations
+ * @param {number} page - Page number
+ * @param {number} limit - Items per page
+ * @returns {object} Response object with success, statusCode, message, data
+ */
+export const getPaginatedConversations = async (userId, searchTerm = "", page = 1, limit = 20) => {
+    try {
+        if (!userId) {
+            return {
+                success: false,
+                statusCode: STATUS.BAD_REQUEST,
+                message: "User ID is required"
+            };
+        }
+
+        const parsedPage = Number.parseInt(page, 10);
+        const parsedLimit = Number.parseInt(limit, 10);
+        const normalizedPage = Number.isNaN(parsedPage) ? 1 : Math.max(1, parsedPage);
+        const normalizedLimit = Number.isNaN(parsedLimit) ? 20 : Math.max(1, Math.min(parsedLimit, 100));
+
+        const conversations = await conversationRepo.getConversationsByParticipantId(userId);
+
+        const populatedConversations = await Promise.all(
+            conversations.map((conversation) =>
+                conversation.populate([
+                    { path: "participants", select: "id fullname email profilepic" },
+                    { path: "groupId", select: "name avatar description createdBy members" },
+                    { path: "lastMessage", populate: { path: "senderId", select: "id fullname profilepic" } },
+                ])
+            )
+        );
+
+        const normalizedConversations = populatedConversations.map((conversation) => {
+            const isDirect = conversation.type === "direct";
+            const otherParticipant = isDirect
+                ? conversation.participants.find((participant) => participant._id.toString() !== userId.toString()) || null
+                : null;
+
+            return {
+                _id: conversation._id,
+                type: conversation.type,
+                participants: conversation.participants,
+                otherParticipant,
+                group: conversation.groupId || null,
+                lastMessage: conversation.lastMessage,
+                lastMessageAt: conversation.lastMessageAt,
+                createdAt: conversation.createdAt,
+                updatedAt: conversation.updatedAt,
+            };
+        });
+
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+        const filteredConversations = normalizedSearch
+            ? normalizedConversations.filter((conversation) => {
+                const directName = conversation?.otherParticipant?.fullname || "";
+                const groupName = conversation?.group?.name || "";
+                const lastMessageText = conversation?.lastMessage?.text || "";
+
+                const searchableText = `${directName} ${groupName} ${lastMessageText}`.toLowerCase();
+                return searchableText.includes(normalizedSearch);
+            })
+            : normalizedConversations;
+
+        const total = filteredConversations.length;
+        const start = (normalizedPage - 1) * normalizedLimit;
+        const items = filteredConversations.slice(start, start + normalizedLimit);
+
+        return {
+            success: true,
+            statusCode: STATUS.OK,
+            message: "Conversations fetched successfully",
+            data: {
+                conversations: items,
+                pagination: {
+                    page: normalizedPage,
+                    limit: normalizedLimit,
+                    total,
+                    hasNextPage: normalizedPage * normalizedLimit < total,
+                },
+            },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            statusCode: STATUS.INTERNAL_ERROR,
+            message: "Error fetching conversations",
+            error: error.message,
+        };
+    }
+};

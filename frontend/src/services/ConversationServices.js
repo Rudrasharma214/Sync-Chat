@@ -57,6 +57,34 @@ export const getAllConversations = async (searchTerm = "") => {
     }
 };
 
+export const getPaginatedConversations = async (searchTerm = "", page = 1, limit = 20) => {
+    try {
+        const response = await api.get("/conversations", {
+            params: {
+                page,
+                limit,
+                ...(searchTerm ? { search: searchTerm } : {}),
+            },
+        });
+        logger.info("Get paginated conversations API call successful", null, "ConversationServices");
+        return {
+            success: true,
+            data: response.data.data,
+            message: response.data.message,
+        };
+    } catch (error) {
+        logger.error(
+            "Get paginated conversations API call failed",
+            error.response?.data,
+            "ConversationServices"
+        );
+        return {
+            success: false,
+            message: error.response?.data?.message || error.message,
+        };
+    }
+};
+
 /**
  * Get conversation by ID
  */

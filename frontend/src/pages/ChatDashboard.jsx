@@ -105,6 +105,9 @@ const ChatDashboard = () => {
     isLoading: isConversationsLoading,
     isError: isConversationsError,
     error: conversationsError,
+    fetchNextPage: fetchMoreConversations,
+    hasNextPage: hasMoreConversations,
+    isFetchingNextPage: isFetchingMoreConversations,
   } = useConversations(debouncedSearchTerm);
 
   const {
@@ -136,11 +139,14 @@ const ChatDashboard = () => {
 
   const conversations = useMemo(
     () => {
-      if (!Array.isArray(conversationsData)) {
+      const pages = conversationsData?.pages || [];
+      if (!Array.isArray(pages) || !pages.length) {
         return [];
       }
 
-      return conversationsData.map((conversation) => {
+      const flattenedConversations = pages.flatMap((page) => page?.conversations || []);
+
+      return flattenedConversations.map((conversation) => {
         const mappedConversation = mapConversationListItem(conversation);
         const participantId = mappedConversation.participantId;
 
@@ -249,6 +255,9 @@ const ChatDashboard = () => {
               conversations={conversations}
               activeConversationId={activeConversation?.id}
               onSelectConversation={handleSelectConversation}
+              onLoadMore={fetchMoreConversations}
+              hasNextPage={hasMoreConversations}
+              isFetchingNextPage={isFetchingMoreConversations}
               searchValue={searchTerm}
               onSearchChange={setSearchTerm}
               searchedUsers={searchedUsers}

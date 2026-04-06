@@ -63,8 +63,9 @@ export const getAllConversations = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
         const searchTerm = typeof req.query?.search === "string" ? req.query.search : "";
+        const { page = 1, limit = 20 } = req.query;
 
-        const result = await conversationService.getAllConversations(userId, searchTerm);
+        const result = await conversationService.getPaginatedConversations(userId, searchTerm, page, limit);
 
         if (!result.success) {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);

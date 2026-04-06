@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import * as conversationService from "../../services/ConversationServices";
 import { logger } from "../../utils/logger";
 
@@ -8,14 +8,21 @@ export const conversationQueryKeys = {
 };
 
 export const useConversations = (searchTerm = "") => {
-    return useQuery({
+    return useInfiniteQuery({
         queryKey: conversationQueryKeys.all(searchTerm),
-        queryFn: async () => {
-            const result = await conversationService.getAllConversations(searchTerm);
+        initialPageParam: 1,
+        queryFn: async ({ pageParam }) => {
+            const result = await conversationService.getPaginatedConversations(searchTerm, pageParam, 20);
             if (!result.success) {
                 throw new Error(result.message || "Failed to load conversations");
             }
             return result.data;
+        },
+        getNextPageParam: (lastPage) => {
+            if (lastPage?.pagination?.hasNextPage) {
+                return Number(lastPage.pagination.page || 1) + 1;
+            }
+            return undefined;
         },
         onError: (error) => {
             logger.error("Failed to fetch conversations", error, "useConversations");

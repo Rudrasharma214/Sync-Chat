@@ -39,6 +39,7 @@ export const connectSocket = (token) => {
         withCredentials: true,
         transports: ["websocket", "polling"],
         auth: token ? { token } : {},
+        closeOnBeforeunload: true,
         autoConnect: true,
         reconnection: true,
     });

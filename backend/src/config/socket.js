@@ -148,9 +148,22 @@ export const initSocket = (server) => {
       origin: env.FRONTEND_URL,
       credentials: true,
     },
+    // Detect closed tabs/connections faster so presence updates promptly.
+    pingInterval: 10000,
+    pingTimeout: 5000,
   });
 
   io.adapter(createAdapter(pubClient, subClient));
+
+  // Clear stale presence state from previous crashes/restarts.
+  Promise.all([
+    pubClient.del(ONLINE_USERS_KEY),
+    pubClient.del(USER_SOCKET_COUNT_KEY),
+  ]).catch((error) => {
+    logger.warn("Failed to reset stale online presence cache", {
+      message: error?.message,
+    });
+  });
 
   io.use((socket, next) => {
     try {

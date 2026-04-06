@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { MoreVertical } from "lucide-react";
 
 const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
 
@@ -44,6 +45,11 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
 
     const [isEditing, setIsEditing] = useState(false);
     const [draftText, setDraftText] = useState(message?.text || "");
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [deleteType, setDeleteType] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const canManageMessage = isMine && !isEditing && !message?.deletedForEveryone && !message?.isDeletedForEveryone;
 
     const canEdit = useMemo(() => {
         if (!isMine || message?.deletedForEveryone || message?.isDeletedForEveryone) {
@@ -70,6 +76,7 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
         }
 
         await onEditMessage(messageId, nextText);
+        setIsMenuOpen(false);
         setIsEditing(false);
     };
 
@@ -77,7 +84,18 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
         if (!messageId) {
             return;
         }
-        await onDeleteMessage(messageId, type);
+        setIsDeleting(true);
+        try {
+            await onDeleteMessage(messageId, type);
+        } finally {
+            setDeleteType(null);
+            setIsDeleting(false);
+        }
+    };
+
+    const openDeleteConfirmation = (type) => {
+        setIsMenuOpen(false);
+        setDeleteType(type);
     };
 
     return (
@@ -88,7 +106,54 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
             >
                 <div className="mb-1 flex items-center justify-between gap-3">
                     <p className="text-xs font-semibold opacity-75">{senderName}</p>
-                    <p className="text-[11px] opacity-70">{getMessageTimestamp(message)}</p>
+                    <div className="flex items-center gap-1.5">
+                        <p className="text-[11px] opacity-70">{getMessageTimestamp(message)}</p>
+
+                        {canManageMessage ? (
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMenuOpen((prev) => !prev)}
+                                    className="inline-flex h-5 w-5 items-center justify-center rounded text-slate-900/75 transition hover:bg-slate-900/15 hover:text-slate-900"
+                                    aria-label="Message options"
+                                    title="Message options"
+                                >
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                </button>
+
+                                {isMenuOpen ? (
+                                    <div className="absolute right-0 top-6 z-20 min-w-[130px] rounded-lg border border-slate-800/15 bg-[var(--surface)] p-1 text-xs shadow-lg">
+                                        {canEdit ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsEditing(true);
+                                                    setIsMenuOpen(false);
+                                                }}
+                                                className="theme-text block w-full rounded px-2 py-1.5 text-left transition hover:bg-amber-500/10"
+                                            >
+                                                Edit
+                                            </button>
+                                        ) : null}
+                                        <button
+                                            type="button"
+                                            onClick={() => openDeleteConfirmation("me")}
+                                            className="theme-text block w-full rounded px-2 py-1.5 text-left transition hover:bg-amber-500/10"
+                                        >
+                                            Delete for me
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => openDeleteConfirmation("everyone")}
+                                            className="theme-text block w-full rounded px-2 py-1.5 text-left transition hover:bg-amber-500/10"
+                                        >
+                                            Delete for everyone
+                                        </button>
+                                    </div>
+                                ) : null}
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
 
                 {isEditing ? (
@@ -124,31 +189,55 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
                     <p className="text-sm leading-relaxed">{renderedContent || "This message was deleted"}</p>
                 )}
 
-                {isMine && !isEditing && !message?.deletedForEveryone && !message?.isDeletedForEveryone ? (
-                    <div className="mt-2 flex items-center gap-3 text-[11px] font-medium opacity-85">
-                        {canEdit ? (
-                            <button
-                                type="button"
-                                onClick={() => setIsEditing(true)}
-                                className="transition hover:text-amber-700"
-                            >
-                                Edit
-                            </button>
-                        ) : null}
+                {isMenuOpen && canManageMessage ? (
+                    <button
+                        type="button"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="fixed inset-0 z-10 cursor-default"
+                        aria-label="Close message options"
+                    />
+                ) : null}
+
+                {deleteType ? (
+                    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
                         <button
                             type="button"
-                            onClick={() => handleDelete("me")}
-                            className="transition hover:text-amber-700"
-                        >
-                            Delete for me
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleDelete("everyone")}
-                            className="transition hover:text-amber-700"
-                        >
-                            Delete for everyone
-                        </button>
+                            onClick={() => {
+                                if (!isDeleting) {
+                                    setDeleteType(null);
+                                }
+                            }}
+                            className="absolute inset-0 bg-black/55"
+                            aria-label="Close delete confirmation"
+                        />
+
+                        <div className="theme-surface theme-border relative z-10 w-full max-w-sm rounded-2xl border p-4 shadow-2xl">
+                            <h3 className="theme-text text-base font-semibold">Delete message?</h3>
+                            <p className="theme-muted mt-1 text-sm">
+                                {deleteType === "everyone"
+                                    ? "This will remove the message for everyone in this conversation."
+                                    : "This will remove the message only for you."}
+                            </p>
+
+                            <div className="mt-4 flex items-center justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setDeleteType(null)}
+                                    disabled={isDeleting}
+                                    className="theme-border theme-text rounded-md border px-3 py-1.5 text-sm transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(deleteType)}
+                                    disabled={isDeleting}
+                                    className="rounded-md bg-amber-500 px-3 py-1.5 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {isDeleting ? "Deleting..." : "Delete"}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 ) : null}
             </div>

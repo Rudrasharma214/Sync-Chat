@@ -2,6 +2,11 @@ import { STATUS } from "../constant/statusCodes.js";
 import { sendErrorResponse, sendResponse } from "../utils/response.js";
 import * as groupService from "../services/group.service.js";
 
+/**
+ * Create a new group
+ * @route POST /api/groups
+ * @access Private
+ */
 export const createGroup = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
@@ -17,6 +22,11 @@ export const createGroup = async (req, res, next) => {
     }
 };
 
+/**
+ * Get all groups of current user
+ * @route GET /api/groups
+ * @access Private
+ */
 export const getMyGroups = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
@@ -32,6 +42,11 @@ export const getMyGroups = async (req, res, next) => {
     }
 };
 
+/**
+ * Get group by ID
+ * @route GET /api/groups/:groupId
+ * @access Private
+ */
 export const getGroupById = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
@@ -48,6 +63,11 @@ export const getGroupById = async (req, res, next) => {
     }
 };
 
+/**
+ * Update group details
+ * @route PATCH /api/groups/:groupId
+ * @access Private (admin/owner)
+ */
 export const updateGroup = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
@@ -64,6 +84,11 @@ export const updateGroup = async (req, res, next) => {
     }
 };
 
+/**
+ * Delete group
+ * @route DELETE /api/groups/:groupId
+ * @access Private (owner)
+ */
 export const deleteGroup = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
@@ -80,6 +105,11 @@ export const deleteGroup = async (req, res, next) => {
     }
 };
 
+/**
+ * Add members to a group
+ * @route POST /api/groups/:groupId/members
+ * @access Private (admin/owner)
+ */
 export const addMembers = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
@@ -97,6 +127,11 @@ export const addMembers = async (req, res, next) => {
     }
 };
 
+/**
+ * Remove member from a group
+ * @route DELETE /api/groups/:groupId/members/:memberId
+ * @access Private (admin/owner)
+ */
 export const removeMember = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;
@@ -113,6 +148,11 @@ export const removeMember = async (req, res, next) => {
     }
 };
 
+/**
+ * Update role of a group member
+ * @route PATCH /api/groups/:groupId/members/:memberId/role
+ * @access Private (owner)
+ */
 export const updateMemberRole = async (req, res, next) => {
     try {
         const { _id: userId } = req.user;

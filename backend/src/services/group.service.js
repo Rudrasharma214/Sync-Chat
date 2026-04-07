@@ -35,6 +35,12 @@ const populateGroup = async (group) => {
     return group;
 };
 
+/**
+ * Create a new group and corresponding group conversation
+ * @param {string} currentUserId - Current user ID
+ * @param {object} payload - Group payload
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const createGroup = async (currentUserId, payload) => {
     try {
         const { name, description = "", avatar = "", memberIds = [] } = payload || {};
@@ -116,6 +122,11 @@ export const createGroup = async (currentUserId, payload) => {
     }
 };
 
+/**
+ * Get all groups where current user is a member
+ * @param {string} currentUserId - Current user ID
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const getMyGroups = async (currentUserId) => {
     try {
         const groups = await groupRepo.getGroupsByMemberId(currentUserId);
@@ -137,6 +148,12 @@ export const getMyGroups = async (currentUserId) => {
     }
 };
 
+/**
+ * Get group by ID with membership validation
+ * @param {string} currentUserId - Current user ID
+ * @param {string} groupId - Group ID
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const getGroupById = async (currentUserId, groupId) => {
     try {
         if (!groupId || !isValidObjectId(groupId)) {
@@ -183,6 +200,13 @@ export const getGroupById = async (currentUserId, groupId) => {
     }
 };
 
+/**
+ * Update group details (name, description, avatar)
+ * @param {string} currentUserId - Current user ID
+ * @param {string} groupId - Group ID
+ * @param {object} payload - Update payload
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const updateGroup = async (currentUserId, groupId, payload) => {
     try {
         if (!groupId || !isValidObjectId(groupId)) {
@@ -252,6 +276,12 @@ export const updateGroup = async (currentUserId, groupId, payload) => {
     }
 };
 
+/**
+ * Delete a group and its mapped conversation
+ * @param {string} currentUserId - Current user ID
+ * @param {string} groupId - Group ID
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const deleteGroup = async (currentUserId, groupId) => {
     try {
         if (!groupId || !isValidObjectId(groupId)) {
@@ -303,6 +333,13 @@ export const deleteGroup = async (currentUserId, groupId) => {
     }
 };
 
+/**
+ * Add new members to a group
+ * @param {string} currentUserId - Current user ID
+ * @param {string} groupId - Group ID
+ * @param {string[]} memberIds - Member IDs to add
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const addMembers = async (currentUserId, groupId, memberIds = []) => {
     try {
         if (!groupId || !isValidObjectId(groupId)) {
@@ -408,6 +445,13 @@ export const addMembers = async (currentUserId, groupId, memberIds = []) => {
     }
 };
 
+/**
+ * Remove an existing member from a group
+ * @param {string} currentUserId - Current user ID
+ * @param {string} groupId - Group ID
+ * @param {string} memberId - Member ID to remove
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const removeMember = async (currentUserId, groupId, memberId) => {
     try {
         if (!groupId || !isValidObjectId(groupId) || !memberId || !isValidObjectId(memberId)) {
@@ -491,6 +535,14 @@ export const removeMember = async (currentUserId, groupId, memberId) => {
     }
 };
 
+/**
+ * Update role of a group member
+ * @param {string} currentUserId - Current user ID
+ * @param {string} groupId - Group ID
+ * @param {string} memberId - Member ID
+ * @param {string} role - Next role (admin/member)
+ * @returns {object} Response object with success, statusCode, message, data
+ */
 export const updateMemberRole = async (currentUserId, groupId, memberId, role) => {
     try {
         if (!groupId || !isValidObjectId(groupId) || !memberId || !isValidObjectId(memberId)) {

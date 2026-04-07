@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SidebarMenu from "../components/chat/SidebarMenu";
 import ConversationList from "../components/chat/ConversationList";
 import ChatWindow from "../components/chat/ChatWindow";
+import CreateGroupModal from "../components/group/CreateGroupModal";
 import { useConversationById, useConversations } from "../hooks/useQueries/conversationQueries";
 import { useSocket } from "../hooks/useSocket";
 import { useSearchUsers } from "../hooks/useQueries/authQueries";
@@ -33,9 +35,14 @@ const mapConversationListItem = (conversation) => {
   const group = conversation?.group;
   const lastMessageText = conversation?.lastMessage?.text?.trim();
   const participantId = directParticipant?._id || directParticipant?.id || null;
+  const groupId = group?._id || null;
+  const memberCount = Array.isArray(group?.members) ? group.members.length : 0;
 
   return {
     id: conversation?._id,
+    type: conversation?.type || "direct",
+    groupId,
+    memberCount,
     name:
       (isDirect ? directParticipant?.fullname : group?.name) ||
       (isDirect ? "Direct chat" : "Group chat"),
@@ -66,9 +73,14 @@ const mapConversationDetails = (conversation, authUserId) => {
     : null;
 
   const group = conversation?.groupId;
+  const groupId = group?._id || null;
+  const memberCount = Array.isArray(group?.members) ? group.members.length : 0;
 
   return {
     id: conversation._id,
+    type: conversation.type,
+    groupId,
+    memberCount,
     name: (isDirect ? directParticipant?.fullname : group?.name) || "Conversation",
     avatar: (isDirect ? directParticipant?.profilepic : group?.avatar) || FALLBACK_AVATAR,
     participantId: directParticipant?._id || directParticipant?.id || null,
@@ -90,6 +102,8 @@ const ChatDashboard = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [pendingGroupIdToSelect, setPendingGroupIdToSelect] = useState(null);
   const createOrGetDirectConversation = useCreateOrGetDirectConversation();
 
   useEffect(() => {
@@ -159,6 +173,25 @@ const ChatDashboard = () => {
     [conversationsData, onlineUserIds]
   );
 
+  useEffect(() => {
+    if (!pendingGroupIdToSelect || !conversations.length) {
+      return;
+    }
+
+    const matchedConversation = conversations.find(
+      (conversation) =>
+        conversation.type === "group" && String(conversation.groupId) === String(pendingGroupIdToSelect)
+    );
+
+    if (!matchedConversation) {
+      return;
+    }
+
+    setActiveConversationId(matchedConversation.id);
+    setIsChatOpen(true);
+    setPendingGroupIdToSelect(null);
+  }, [conversations, pendingGroupIdToSelect]);
+
   const selectedConversationId = useMemo(() => {
     if (!conversations.length) {
       return null;
@@ -218,8 +251,18 @@ const ChatDashboard = () => {
         setSearchTerm("");
       }
     } catch (error) {
+      toast.error(error.message || "Failed to start direct conversation");
       logger.error("Failed to create/select direct conversation", error, "ChatDashboard");
     }
+  };
+
+  const handleGroupCreated = (group) => {
+    const createdGroupId = group?._id || group?.id;
+    if (!createdGroupId) {
+      return;
+    }
+
+    setPendingGroupIdToSelect(createdGroupId);
   };
 
   const handleBackToList = () => {
@@ -238,6 +281,9 @@ const ChatDashboard = () => {
       <div className="theme-border flex h-full w-full overflow-hidden border bg-[linear-gradient(120deg,var(--surface)_0%,var(--surface-soft)_100%)]">
         <SidebarMenu
           isDarkMode={isDarkMode}
+          activeSection="chat"
+          onOpenChat={() => navigate("/chat")}
+          onOpenGroups={() => navigate("/groups")}
           onToggleTheme={toggleTheme}
           onOpenSettings={() => navigate("/settings")}
           onLogout={handleLogout}
@@ -263,6 +309,7 @@ const ChatDashboard = () => {
               searchedUsers={searchedUsers}
               isUserSearchLoading={isUserSearchLoading}
               onSelectUser={handleSelectUser}
+              onOpenCreateGroup={() => setIsCreateGroupOpen(true)}
               isLoading={isConversationsLoading}
               isError={isConversationsError}
               errorMessage={conversationsError?.message}
@@ -287,6 +334,12 @@ const ChatDashboard = () => {
           </div>
         </div>
       </div>
+
+      <CreateGroupModal
+        isOpen={isCreateGroupOpen}
+        onClose={() => setIsCreateGroupOpen(false)}
+        onCreated={handleGroupCreated}
+      />
     </main>
   );
 };

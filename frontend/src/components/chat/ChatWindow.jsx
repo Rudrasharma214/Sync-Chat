@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Phone, Search, X, Video } from "lucide-react";
+import { ArrowLeft, Phone, Search, Users, X, Video } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useDeleteMessage, useUpdateMessage } from "../../hooks/useMutation/messageMutation";
 import MessageInput from "./MessageInput";
 import MessageList from "./MessageList";
+import GroupDetailsPanel from "../group/GroupDetailsPanel";
 
 const iconBtnClass =
     "inline-flex h-8 w-8 items-center justify-center rounded-lg border theme-border theme-muted bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500 sm:h-9 sm:w-9 sm:rounded-xl";
@@ -15,6 +16,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isGroupPanelOpen, setIsGroupPanelOpen] = useState(false);
     const typingTimeoutRef = useRef(null);
 
     const updateMessageMutation = useUpdateMessage();
@@ -51,14 +53,25 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
         };
     }, [conversationId, currentUserId, socket]);
 
+    useEffect(() => {
+        setIsGroupPanelOpen(false);
+    }, [conversationId]);
+
     const typingText = useMemo(() => (isTyping ? "typing..." : ""), [isTyping]);
+    const isGroupConversation = activeConversation?.type === "group";
+
     const presenceText = useMemo(() => {
+        if (isGroupConversation) {
+            const memberCount = Number(activeConversation?.memberCount || 0);
+            return `${memberCount || 0} members`;
+        }
+
         if (typingText) {
             return typingText;
         }
 
         return activeConversation?.online ? "Online" : "Offline";
-    }, [activeConversation?.online, typingText]);
+    }, [activeConversation?.memberCount, activeConversation?.online, isGroupConversation, typingText]);
 
     const handleEditMessage = useCallback(
         async (messageId, content) => {
@@ -161,6 +174,19 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                             <Video className="h-4 w-4" />
                         </span>
                     </button>
+                    {isGroupConversation ? (
+                        <button
+                            type="button"
+                            className="inline-flex"
+                            onClick={() => setIsGroupPanelOpen(true)}
+                            aria-label="Group details"
+                            title="Group details"
+                        >
+                            <span className={iconBtnClass}>
+                                <Users className="h-4 w-4" />
+                            </span>
+                        </button>
+                    ) : null}
                 </div>
             </header>
 
@@ -174,6 +200,14 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
             />
 
             <MessageInput socket={socket} conversationId={conversationId} />
+
+            {isGroupConversation ? (
+                <GroupDetailsPanel
+                    groupId={activeConversation?.groupId}
+                    isOpen={isGroupPanelOpen}
+                    onClose={() => setIsGroupPanelOpen(false)}
+                />
+            ) : null}
         </section>
     );
 };

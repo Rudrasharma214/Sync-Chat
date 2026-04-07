@@ -5,6 +5,7 @@ import Signup from "../pages/Signup";
 import Login from "../pages/Login";
 import Welcome from "../pages/Welcome";
 import ChatDashboard from "../pages/ChatDashboard";
+import Groups from "../pages/Groups";
 import Settings from "../pages/Settings";
 import OpenRoute from "./OpenRoutes";
 import ProtectedRoute from "./ProtectedRoutes";
@@ -51,6 +52,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/groups"
+        element={
+          <ProtectedRoute>
+            <Groups />
           </ProtectedRoute>
         }
       />

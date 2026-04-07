@@ -63,7 +63,7 @@ export const useDeleteGroup = () => {
             if (!result.success) {
                 throw new Error(result.message || "Failed to delete group");
             }
-            return { ...result.data, groupId };
+            return { ...(result.data || {}), groupId };
         },
         onSuccess: (data) => {
             logger.info("Group deleted successfully", null, "useDeleteGroup");

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 const ConversationList = ({
   conversations,
@@ -13,6 +13,7 @@ const ConversationList = ({
   searchedUsers = [],
   isUserSearchLoading = false,
   onSelectUser,
+  onOpenCreateGroup,
   isLoading = false,
   isError = false,
   errorMessage = "",
@@ -57,9 +58,19 @@ const ConversationList = ({
     <section className="theme-surface flex h-full w-full flex-col theme-border sm:w-[300px] sm:border-r lg:w-[320px]">
       <div className="flex h-full min-h-0 flex-col p-4 sm:p-5">
         <div className="mb-4 flex items-center gap-2">
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="theme-text text-2xl font-semibold">Sync Chat</p>
           </div>
+          <button
+            type="button"
+            onClick={onOpenCreateGroup}
+            className="inline-flex items-center gap-1 rounded-xl bg-amber-500 px-2.5 py-1.5 text-xs font-semibold text-slate-900 transition hover:bg-amber-400"
+            title="Create group"
+            aria-label="Create group"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Group
+          </button>
         </div>
 
         <div className="relative">
@@ -110,6 +121,17 @@ const ConversationList = ({
                             {conversation.name}
                           </p>
                           <span className="theme-muted text-xs">{conversation.time}</span>
+                        </div>
+
+                        <div className="mt-1 flex items-center gap-2">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${conversation.type === "group"
+                              ? "bg-sky-500/15 text-sky-500"
+                              : "bg-emerald-500/15 text-emerald-500"
+                              }`}
+                          >
+                            {conversation.type === "group" ? "GROUP" : "DIRECT"}
+                          </span>
                         </div>
 
                         <p className="theme-muted mt-1 truncate text-xs">{conversation.preview}</p>

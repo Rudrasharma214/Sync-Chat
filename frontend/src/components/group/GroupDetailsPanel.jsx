@@ -37,6 +37,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
     const [descriptionDraft, setDescriptionDraft] = useState("");
     const [avatarDraft, setAvatarDraft] = useState("");
     const [activeTab, setActiveTab] = useState("overview");
+    const [isEditMode, setIsEditMode] = useState(false);
 
     const { data: group, isLoading: isGroupLoading } = useGroupById(groupId, {
         enabled: Boolean(groupId && isOpen),
@@ -79,6 +80,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
         setNameDraft(group?.name || "");
         setDescriptionDraft(group?.description || "");
         setAvatarDraft(group?.avatar || "");
+        setIsEditMode(false);
     };
 
     React.useEffect(() => {
@@ -102,6 +104,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                 },
             });
             toast.success("Group updated");
+            setIsEditMode(false);
         } catch (error) {
             toast.error(error.message || "Failed to update group");
         }
@@ -197,16 +200,40 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                 ) : (
                     <div className="mx-auto w-full max-w-2xl space-y-4">
                         <div className="theme-border rounded-2xl border p-3 sm:p-4">
-                            <div className="mb-3 flex items-center gap-3">
-                                <img
-                                    src={group.avatar || FALLBACK_AVATAR}
-                                    alt={group.name}
-                                    className="h-14 w-14 rounded-2xl object-cover"
-                                />
-                                <div>
-                                    <p className="theme-text text-base font-semibold">{group.name}</p>
-                                    <p className="theme-muted text-xs">{members.length} members</p>
+                            <div className="mb-3 flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <img
+                                        src={group.avatar || FALLBACK_AVATAR}
+                                        alt={group.name}
+                                        className="h-14 w-14 rounded-2xl object-cover"
+                                    />
+                                    <div>
+                                        <p className="theme-text text-base font-semibold">{group.name}</p>
+                                        <p className="theme-muted text-xs">{members.length} members</p>
+                                    </div>
                                 </div>
+
+                                {canEditGroup ? (
+                                    isEditMode ? (
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveGroup}
+                                            disabled={updateGroupMutation.isPending || !nameDraft.trim()}
+                                            className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            {updateGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                            Save changes
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEditMode(true)}
+                                            className="theme-border theme-text inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition hover:border-amber-500/70 hover:text-amber-500"
+                                        >
+                                            Edit
+                                        </button>
+                                    )
+                                ) : null}
                             </div>
 
                             <div className="space-y-2">
@@ -215,7 +242,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                     <input
                                         value={nameDraft}
                                         onChange={(event) => setNameDraft(event.target.value)}
-                                        disabled={!canEditGroup || updateGroupMutation.isPending}
+                                        disabled={!canEditGroup || !isEditMode || updateGroupMutation.isPending}
                                         className="theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-amber-500 disabled:opacity-60"
                                     />
                                 </label>
@@ -226,7 +253,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                         value={descriptionDraft}
                                         onChange={(event) => setDescriptionDraft(event.target.value)}
                                         rows={3}
-                                        disabled={!canEditGroup || updateGroupMutation.isPending}
+                                        disabled={!canEditGroup || !isEditMode || updateGroupMutation.isPending}
                                         className="theme-input w-full resize-none rounded-xl border px-3 py-2 text-sm outline-none focus:border-amber-500 disabled:opacity-60"
                                     />
                                 </label>
@@ -236,25 +263,15 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                     <input
                                         value={avatarDraft}
                                         onChange={(event) => setAvatarDraft(event.target.value)}
-                                        disabled={!canEditGroup || updateGroupMutation.isPending}
+                                        disabled={!canEditGroup || !isEditMode || updateGroupMutation.isPending}
                                         className="theme-input w-full rounded-xl border px-3 py-2 text-sm outline-none focus:border-amber-500 disabled:opacity-60"
                                     />
                                 </label>
-
-                                {canEditGroup ? (
-                                    <button
-                                        type="button"
-                                        onClick={handleSaveGroup}
-                                        disabled={updateGroupMutation.isPending || !nameDraft.trim()}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
-                                    >
-                                        {updateGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                                        Save changes
-                                    </button>
-                                ) : (
-                                    <p className="theme-muted text-xs">Only admins or owner can edit group details.</p>
-                                )}
                             </div>
+
+                            {!canEditGroup ? (
+                                <p className="theme-muted mt-2 text-xs">Only admins or owner can edit group details.</p>
+                            ) : null}
                         </div>
 
                         {canDeleteGroup ? (
@@ -357,8 +374,8 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                                             onClick={() => handleUpdateRole(memberId, "member")}
                                                             disabled={member.role === "member"}
                                                             className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${member.role === "member"
-                                                                    ? "bg-amber-500 text-slate-900"
-                                                                    : "theme-muted hover:text-amber-500"
+                                                                ? "bg-amber-500 text-slate-900"
+                                                                : "theme-muted hover:text-amber-500"
                                                                 }`}
                                                         >
                                                             Member
@@ -368,8 +385,8 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                                             onClick={() => handleUpdateRole(memberId, "admin")}
                                                             disabled={member.role === "admin"}
                                                             className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${member.role === "admin"
-                                                                    ? "bg-amber-500 text-slate-900"
-                                                                    : "theme-muted hover:text-amber-500"
+                                                                ? "bg-amber-500 text-slate-900"
+                                                                : "theme-muted hover:text-amber-500"
                                                                 }`}
                                                         >
                                                             Admin

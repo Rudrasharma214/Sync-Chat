@@ -123,17 +123,6 @@ const ConversationList = ({
                           <span className="theme-muted text-xs">{conversation.time}</span>
                         </div>
 
-                        <div className="mt-1 flex items-center gap-2">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${conversation.type === "group"
-                              ? "bg-sky-500/15 text-sky-500"
-                              : "bg-emerald-500/15 text-emerald-500"
-                              }`}
-                          >
-                            {conversation.type === "group" ? "GROUP" : "DIRECT"}
-                          </span>
-                        </div>
-
                         <p className="theme-muted mt-1 truncate text-xs">{conversation.preview}</p>
                       </div>
 

@@ -98,6 +98,7 @@ const ChatDashboard = () => {
   const { authUser, logout } = useAuth();
   const { socket } = useSocket();
   const [activeConversationId, setActiveConversationId] = useState(null);
+  const [activeConversationSnapshot, setActiveConversationSnapshot] = useState(null);
   const [onlineUserIds, setOnlineUserIds] = useState(() => new Set());
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -193,15 +194,21 @@ const ChatDashboard = () => {
   }, [conversations, pendingGroupIdToSelect]);
 
   const selectedConversationId = useMemo(() => {
+    if (activeConversationId) {
+      return activeConversationId;
+    }
+
     if (!conversations.length) {
       return null;
     }
 
-    const hasCurrentSelection = conversations.some(
-      (conversation) => conversation.id === activeConversationId
-    );
+    return conversations[0].id;
+  }, [activeConversationId, conversations]);
 
-    return hasCurrentSelection ? activeConversationId : conversations[0].id;
+  useEffect(() => {
+    if (!activeConversationId && conversations.length) {
+      setActiveConversationId(conversations[0].id);
+    }
   }, [activeConversationId, conversations]);
 
   const { data: activeConversationDetails } = useConversationById(selectedConversationId, {
@@ -213,20 +220,21 @@ const ChatDashboard = () => {
       const baseConversation =
         conversations.find((conversation) => conversation.id === selectedConversationId) || null;
 
-      if (!baseConversation) {
+      const authUserId = authUser?.id || authUser?._id;
+      const details = mapConversationDetails(activeConversationDetails, authUserId);
+
+      if (!baseConversation && !details) {
         return null;
       }
 
-      const authUserId = authUser?.id || authUser?._id;
-      const details = mapConversationDetails(activeConversationDetails, authUserId);
       if (!details) {
         return baseConversation;
       }
 
-      const participantId = details.participantId || baseConversation.participantId;
+      const participantId = details.participantId || baseConversation?.participantId;
 
       return {
-        ...baseConversation,
+        ...(baseConversation || {}),
         ...details,
         participantId,
         online: Boolean(participantId && onlineUserIds.has(String(participantId))),
@@ -234,6 +242,14 @@ const ChatDashboard = () => {
     },
     [activeConversationDetails, authUser, conversations, onlineUserIds, selectedConversationId]
   );
+
+  useEffect(() => {
+    if (activeConversation) {
+      setActiveConversationSnapshot(activeConversation);
+    }
+  }, [activeConversation]);
+
+  const visibleActiveConversation = activeConversation || activeConversationSnapshot;
 
   const handleSelectConversation = (conversationId) => {
     setActiveConversationId(conversationId);
@@ -299,7 +315,7 @@ const ChatDashboard = () => {
           >
             <ConversationList
               conversations={conversations}
-              activeConversationId={activeConversation?.id}
+              activeConversationId={visibleActiveConversation?.id}
               onSelectConversation={handleSelectConversation}
               onLoadMore={fetchMoreConversations}
               hasNextPage={hasMoreConversations}
@@ -319,11 +335,11 @@ const ChatDashboard = () => {
           <div
             className={isChatOpen ? "flex min-w-0 flex-1" : "hidden sm:flex sm:min-w-0 sm:flex-1"}
           >
-            {activeConversation ? (
+            {visibleActiveConversation ? (
               <ChatWindow
                 socket={socket}
-                conversationId={activeConversation.id}
-                activeConversation={activeConversation}
+                conversationId={visibleActiveConversation.id}
+                activeConversation={visibleActiveConversation}
                 onBack={handleBackToList}
               />
             ) : (

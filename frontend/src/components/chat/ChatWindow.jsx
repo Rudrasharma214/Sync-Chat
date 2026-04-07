@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useDeleteMessage, useUpdateMessage } from "../../hooks/useMutation/messageMutation";
 import MessageInput from "./MessageInput";
 import MessageList from "./MessageList";
+import ContactProfileModal from "./ContactProfileModal";
 import GroupDetailsPanel from "../group/GroupDetailsPanel";
 
 const iconBtnClass =
@@ -17,6 +18,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isGroupPanelOpen, setIsGroupPanelOpen] = useState(false);
+    const [isProfilePanelOpen, setIsProfilePanelOpen] = useState(false);
     const typingTimeoutRef = useRef(null);
 
     const updateMessageMutation = useUpdateMessage();
@@ -55,6 +57,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
 
     useEffect(() => {
         setIsGroupPanelOpen(false);
+        setIsProfilePanelOpen(false);
     }, [conversationId]);
 
     const typingText = useMemo(() => (isTyping ? "typing..." : ""), [isTyping]);
@@ -104,6 +107,12 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
         setIsSearchOpen(false);
     };
 
+    const handleOpenProfile = () => {
+        if (!isGroupConversation) {
+            setIsProfilePanelOpen(true);
+        }
+    };
+
     return (
         <section className="theme-surface relative flex h-full min-w-0 flex-1 flex-col">
             <header className="theme-border flex items-center justify-between gap-3 border-b px-3 py-3 sm:px-5 sm:py-3">
@@ -118,19 +127,47 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                         <ArrowLeft className="h-4 w-4" />
                     </button>
 
-                    <div className="flex min-w-0 items-center gap-2">
-                        <img
-                            src={activeConversation?.avatar}
-                            alt={activeConversation?.name}
-                            className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
-                        />
-                        <div className="min-w-0">
-                            <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
-                                {activeConversation?.name}
-                            </h2>
-                            <p className="text-xs text-amber-500">{presenceText}</p>
-                        </div>
-                    </div>
+                    {isGroupConversation ? (
+                        <button
+                            type="button"
+                            onClick={() => setIsGroupPanelOpen(true)}
+                            className="flex min-w-0 items-center gap-2 text-left"
+                            aria-label="Open group details"
+                            title="Group details"
+                        >
+                            <img
+                                src={activeConversation?.avatar}
+                                alt={activeConversation?.name}
+                                className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
+                            />
+                            <div className="min-w-0">
+                                <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
+                                    {activeConversation?.name}
+                                </h2>
+                                <p className="text-xs text-amber-500">{presenceText}</p>
+                            </div>
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={handleOpenProfile}
+                            className="flex min-w-0 items-center gap-2 text-left"
+                            aria-label="Open contact profile"
+                            title="Contact profile"
+                        >
+                            <img
+                                src={activeConversation?.avatar}
+                                alt={activeConversation?.name}
+                                className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
+                            />
+                            <div className="min-w-0">
+                                <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
+                                    {activeConversation?.name}
+                                </h2>
+                                <p className="text-xs text-amber-500">{presenceText}</p>
+                            </div>
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex min-w-0 items-center gap-2">
@@ -208,6 +245,12 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                     onClose={() => setIsGroupPanelOpen(false)}
                 />
             ) : null}
+
+            <ContactProfileModal
+                isOpen={!isGroupConversation && isProfilePanelOpen}
+                onClose={() => setIsProfilePanelOpen(false)}
+                contact={activeConversation}
+            />
         </section>
     );
 };

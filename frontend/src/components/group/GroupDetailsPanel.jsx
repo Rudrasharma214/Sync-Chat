@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Loader2, Search, Shield, Trash2, UserPlus, Users, X } from "lucide-react";
+import { Circle, FileText, Image, Link2, Loader2, Search, Shield, Trash2, UserPlus, Users, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -11,6 +11,7 @@ import {
 } from "../../hooks/useMutation/groupMutation";
 import { useSearchUsers } from "../../hooks/useQueries/authQueries";
 import { useGroupById } from "../../hooks/useQueries/groupQueries";
+import DetailPopupLayout from "../chat/DetailPopupLayout";
 
 const FALLBACK_AVATAR =
     "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=140&q=80";
@@ -35,6 +36,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
     const [nameDraft, setNameDraft] = useState("");
     const [descriptionDraft, setDescriptionDraft] = useState("");
     const [avatarDraft, setAvatarDraft] = useState("");
+    const [activeTab, setActiveTab] = useState("overview");
 
     const { data: group, isLoading: isGroupLoading } = useGroupById(groupId, {
         enabled: Boolean(groupId && isOpen),
@@ -169,38 +171,32 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
         return null;
     }
 
+    const tabs = [
+        { key: "overview", label: "Overview", icon: Circle },
+        { key: "members", label: "Members", icon: Users },
+        { key: "media", label: "Media", icon: Image },
+        { key: "files", label: "Files", icon: FileText },
+        { key: "links", label: "Links", icon: Link2 },
+    ];
+
     return (
-        <div className="absolute inset-0 z-30">
-            <button
-                type="button"
-                onClick={onClose}
-                className="absolute inset-0 bg-black/45"
-                aria-label="Close group details"
-            />
-
-            <aside className="theme-surface theme-border absolute right-0 top-0 h-full w-full max-w-[420px] overflow-y-auto border-l p-4 shadow-2xl sm:p-5">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                    <div>
-                        <p className="theme-text text-lg font-semibold">Group Details</p>
-                        <p className="theme-muted text-xs">Manage members, roles, and group settings</p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="theme-border theme-muted inline-flex h-9 w-9 items-center justify-center rounded-xl border transition hover:border-amber-500/70 hover:text-amber-500"
-                        aria-label="Close"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-
-                {isGroupLoading ? (
+        <DetailPopupLayout
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Group Details"
+            subtitle="Manage members, roles, and group settings"
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+        >
+            {activeTab === "overview" ? (
+                isGroupLoading ? (
                     <div className="theme-muted flex items-center justify-center py-8 text-sm">Loading group...</div>
                 ) : !group ? (
                     <div className="theme-muted py-8 text-sm">Group details not available.</div>
                 ) : (
-                    <div className="space-y-4">
-                        <div className="theme-border rounded-2xl border p-3">
+                    <div className="mx-auto w-full max-w-2xl space-y-4">
+                        <div className="theme-border rounded-2xl border p-3 sm:p-4">
                             <div className="mb-3 flex items-center gap-3">
                                 <img
                                     src={group.avatar || FALLBACK_AVATAR}
@@ -261,8 +257,30 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                             </div>
                         </div>
 
+                        {canDeleteGroup ? (
+                            <button
+                                type="button"
+                                onClick={handleDeleteGroup}
+                                disabled={deleteGroupMutation.isPending}
+                                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {deleteGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                Delete group
+                            </button>
+                        ) : (
+                            <p className="theme-muted text-xs">Only owner can delete this group.</p>
+                        )}
+                    </div>
+                )
+            ) : activeTab === "members" ? (
+                isGroupLoading ? (
+                    <div className="theme-muted flex items-center justify-center py-8 text-sm">Loading group...</div>
+                ) : !group ? (
+                    <div className="theme-muted py-8 text-sm">Group details not available.</div>
+                ) : (
+                    <div className="mx-auto w-full max-w-2xl space-y-4">
                         {canManageMembers ? (
-                            <div className="theme-border rounded-2xl border p-3">
+                            <div className="theme-border rounded-2xl border p-3 sm:p-4">
                                 <p className="theme-text mb-2 text-sm font-semibold">Add members</p>
                                 <div className="relative">
                                     <Search className="theme-muted pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
@@ -303,7 +321,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                             </div>
                         ) : null}
 
-                        <div className="theme-border rounded-2xl border p-3">
+                        <div className="theme-border rounded-2xl border p-3 sm:p-4">
                             <p className="theme-text mb-2 text-sm font-semibold">Members</p>
 
                             <div className="space-y-2">
@@ -317,7 +335,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                     return (
                                         <div
                                             key={`${memberId}-${member.role}`}
-                                            className="theme-border flex items-center justify-between gap-2 rounded-xl border px-2 py-2"
+                                            className="theme-border flex flex-col gap-2 rounded-xl border px-2 py-2 sm:flex-row sm:items-center sm:justify-between"
                                         >
                                             <div className="flex min-w-0 items-center gap-2">
                                                 <img
@@ -331,28 +349,44 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-500">
-                                                    <Shield className="h-3 w-3" />
-                                                    {member.role}
-                                                </span>
-
+                                            <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-3">
                                                 {canUpdateRole ? (
-                                                    <select
-                                                        value={member.role}
-                                                        onChange={(event) => handleUpdateRole(memberId, event.target.value)}
-                                                        className="theme-input rounded-md border px-1.5 py-1 text-xs"
-                                                    >
-                                                        <option value="member">member</option>
-                                                        <option value="admin">admin</option>
-                                                    </select>
-                                                ) : null}
+                                                    <div className="theme-border inline-flex items-center rounded-xl border bg-[var(--surface-soft)] p-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleUpdateRole(memberId, "member")}
+                                                            disabled={member.role === "member"}
+                                                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${member.role === "member"
+                                                                    ? "bg-amber-500 text-slate-900"
+                                                                    : "theme-muted hover:text-amber-500"
+                                                                }`}
+                                                        >
+                                                            Member
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleUpdateRole(memberId, "admin")}
+                                                            disabled={member.role === "admin"}
+                                                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${member.role === "admin"
+                                                                    ? "bg-amber-500 text-slate-900"
+                                                                    : "theme-muted hover:text-amber-500"
+                                                                }`}
+                                                        >
+                                                            Admin
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-500">
+                                                        <Shield className="h-3 w-3" />
+                                                        {member.role}
+                                                    </span>
+                                                )}
 
                                                 {canRemove ? (
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveMember(memberId)}
-                                                        className="theme-muted inline-flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-red-500/15 hover:text-red-500"
+                                                        className="theme-border theme-muted inline-flex h-8 w-8 items-center justify-center rounded-lg border transition hover:border-red-500/50 hover:bg-red-500/15 hover:text-red-500"
                                                         title="Remove member"
                                                         aria-label="Remove member"
                                                     >
@@ -365,24 +399,14 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                                 })}
                             </div>
                         </div>
-
-                        {canDeleteGroup ? (
-                            <button
-                                type="button"
-                                onClick={handleDeleteGroup}
-                                disabled={deleteGroupMutation.isPending}
-                                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                {deleteGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                                Delete group
-                            </button>
-                        ) : (
-                            <p className="theme-muted text-xs">Only owner can delete this group.</p>
-                        )}
                     </div>
-                )}
-            </aside>
-        </div>
+                )
+            ) : (
+                <div className="theme-muted py-10 text-center text-sm">
+                    No {activeTab} available for this group yet.
+                </div>
+            )}
+        </DetailPopupLayout>
     );
 };
 

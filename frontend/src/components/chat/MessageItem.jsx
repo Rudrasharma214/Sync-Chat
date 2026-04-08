@@ -37,6 +37,21 @@ const getMessageTimestamp = (message) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
+const isMessageEdited = (message) => {
+    if (!message || message?.deletedForEveryone || message?.isDeletedForEveryone) {
+        return false;
+    }
+
+    const createdAt = new Date(message?.createdAt || 0).getTime();
+    const updatedAt = new Date(message?.updatedAt || 0).getTime();
+
+    if (Number.isNaN(createdAt) || Number.isNaN(updatedAt)) {
+        return false;
+    }
+
+    return updatedAt > createdAt;
+};
+
 const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage }) => {
     const messageId = message?._id || message?.id;
     const senderId = getSenderId(message);
@@ -108,6 +123,9 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
                     <p className="text-xs font-semibold opacity-75">{senderName}</p>
                     <div className="flex items-center gap-1.5">
                         <p className="text-[11px] opacity-70">{getMessageTimestamp(message)}</p>
+                        {isMessageEdited(message) ? (
+                            <span className="text-[10px] font-medium uppercase tracking-wide opacity-65">edited</span>
+                        ) : null}
 
                         {canManageMessage ? (
                             <div className="relative">

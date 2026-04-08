@@ -8,7 +8,7 @@ import ContactProfileModal from "./ContactProfileModal";
 import GroupDetailsPanel from "../group/GroupDetailsPanel";
 
 const iconBtnClass =
-    "inline-flex h-8 w-8 items-center justify-center rounded-lg border theme-border theme-muted bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500 sm:h-9 sm:w-9 sm:rounded-xl";
+    "inline-flex h-7 w-7 items-center justify-center rounded-md border theme-border theme-muted bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500 sm:h-8 sm:w-8 sm:rounded-lg";
 
 const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     const { authUser } = useAuth();
@@ -115,8 +115,8 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
 
     return (
         <section className="theme-surface relative flex h-full min-w-0 flex-1 flex-col">
-            <header className="theme-border flex items-center justify-between gap-3 border-b px-3 py-3 sm:px-5 sm:py-3">
-                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <header className="theme-border flex items-center justify-between gap-2 border-b px-2.5 py-2 sm:px-4 sm:py-2.5">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
                     <button
                         type="button"
                         onClick={onBack}
@@ -138,7 +138,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                             <img
                                 src={activeConversation?.avatar}
                                 alt={activeConversation?.name}
-                                className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
+                                className="h-8 w-8 rounded-lg object-cover sm:h-10 sm:w-10"
                             />
                             <div className="min-w-0">
                                 <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">
@@ -158,7 +158,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                             <img
                                 src={activeConversation?.avatar}
                                 alt={activeConversation?.name}
-                                className="h-9 w-9 rounded-xl object-cover sm:h-11 sm:w-11"
+                                className="h-8 w-8 rounded-lg object-cover sm:h-10 sm:w-10"
                             />
                             <div className="min-w-0">
                                 <h2 className="theme-text truncate text-sm font-semibold sm:text-xl">

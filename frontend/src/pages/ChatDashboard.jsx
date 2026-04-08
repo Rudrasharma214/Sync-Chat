@@ -305,7 +305,7 @@ const ChatDashboard = () => {
           onLogout={handleLogout}
         />
 
-        <div className="flex min-w-0 flex-1 pl-16 sm:pl-0">
+        <div className="flex min-w-0 flex-1 pl-14 sm:pl-0">
           <div
             className={
               isChatOpen

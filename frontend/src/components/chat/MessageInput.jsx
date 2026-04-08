@@ -36,14 +36,14 @@ const MessageInput = ({ socket, conversationId }) => {
     };
 
     return (
-        <footer className="theme-border border-t p-2 sm:p-3">
+        <footer className="theme-border border-t px-2 py-1.5 sm:px-3 sm:py-2">
             <form
                 onSubmit={handleSend}
-                className="theme-border mx-auto flex w-full max-w-[720px] items-center gap-2 rounded-2xl border bg-[var(--surface-soft)] px-2 py-1 sm:gap-2.5 sm:px-3 sm:py-1.5"
+                className="theme-border mx-auto flex w-full max-w-[720px] items-center gap-1.5 rounded-xl border bg-[var(--surface-soft)] px-2 py-0.5 sm:gap-2 sm:px-2.5 sm:py-1"
             >
                 <input
                     type="text"
-                    className="theme-text h-8 w-full bg-transparent text-sm outline-none"
+                    className="theme-text h-7 w-full bg-transparent text-sm outline-none sm:h-8"
                     placeholder="Type your message"
                     value={text}
                     onChange={handleChange}
@@ -51,7 +51,7 @@ const MessageInput = ({ socket, conversationId }) => {
                 />
                 <button
                     type="submit"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-slate-900 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60 sm:h-9 sm:w-9 sm:rounded-xl"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-amber-500 text-slate-900 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60 sm:h-8 sm:w-8 sm:rounded-lg"
                     aria-label="Send message"
                     title="Send"
                     disabled={!text.trim() || !conversationId || sendMessageMutation.isPending}

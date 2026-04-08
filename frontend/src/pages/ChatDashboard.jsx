@@ -7,7 +7,7 @@ import SidebarMenu from "../components/chat/SidebarMenu";
 import ConversationList from "../components/chat/ConversationList";
 import ChatWindow from "../components/chat/ChatWindow";
 import CreateGroupModal from "../components/group/CreateGroupModal";
-import { useConversationById, useConversations } from "../hooks/useQueries/conversationQueries";
+import { useConversations } from "../hooks/useQueries/conversationQueries";
 import { useSocket } from "../hooks/useSocket";
 import { useSearchUsers } from "../hooks/useQueries/authQueries";
 import { useCreateOrGetDirectConversation } from "../hooks/useMutation/conversationMutation";
@@ -60,45 +60,12 @@ const mapConversationListItem = (conversation) => {
   };
 };
 
-const mapConversationDetails = (conversation, authUserId) => {
-  if (!conversation) {
-    return null;
-  }
-
-  const isDirect = conversation.type === "direct";
-  const directParticipant = isDirect
-    ? conversation?.participants?.find(
-      (participant) => String(participant?._id || participant?.id) !== String(authUserId)
-    )
-    : null;
-
-  const group = conversation?.groupId;
-  const groupId = group?._id || null;
-  const memberCount = Array.isArray(group?.members) ? group.members.length : 0;
-
-  return {
-    id: conversation._id,
-    type: conversation.type,
-    groupId,
-    memberCount,
-    name: (isDirect ? directParticipant?.fullname : group?.name) || "Conversation",
-    avatar: (isDirect ? directParticipant?.profilepic : group?.avatar) || FALLBACK_AVATAR,
-    participantId: directParticipant?._id || directParticipant?.id || null,
-    email: directParticipant?.email || "",
-    about: group?.description || "",
-    phone: "",
-    media: [],
-    messages: [],
-  };
-};
-
 const ChatDashboard = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { authUser, logout } = useAuth();
   const { socket } = useSocket();
   const [activeConversationId, setActiveConversationId] = useState(null);
-  const [activeConversationSnapshot, setActiveConversationSnapshot] = useState(null);
   const [onlineUserIds, setOnlineUserIds] = useState(() => new Set());
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -211,45 +178,25 @@ const ChatDashboard = () => {
     }
   }, [activeConversationId, conversations]);
 
-  const { data: activeConversationDetails } = useConversationById(selectedConversationId, {
-    enabled: Boolean(selectedConversationId),
-  });
+  useEffect(() => {
+    if (!activeConversationId) {
+      return;
+    }
+
+    const stillVisible = conversations.some(
+      (conversation) => String(conversation.id) === String(activeConversationId)
+    );
+
+    if (!stillVisible) {
+      setActiveConversationId(conversations[0]?.id || null);
+    }
+  }, [activeConversationId, conversations]);
 
   const activeConversation = useMemo(
-    () => {
-      const baseConversation =
-        conversations.find((conversation) => conversation.id === selectedConversationId) || null;
-
-      const authUserId = authUser?.id || authUser?._id;
-      const details = mapConversationDetails(activeConversationDetails, authUserId);
-
-      if (!baseConversation && !details) {
-        return null;
-      }
-
-      if (!details) {
-        return baseConversation;
-      }
-
-      const participantId = details.participantId || baseConversation?.participantId;
-
-      return {
-        ...(baseConversation || {}),
-        ...details,
-        participantId,
-        online: Boolean(participantId && onlineUserIds.has(String(participantId))),
-      };
-    },
-    [activeConversationDetails, authUser, conversations, onlineUserIds, selectedConversationId]
+    () => conversations.find((conversation) => conversation.id === selectedConversationId) || null,
+    [conversations, selectedConversationId]
   );
-
-  useEffect(() => {
-    if (activeConversation) {
-      setActiveConversationSnapshot(activeConversation);
-    }
-  }, [activeConversation]);
-
-  const visibleActiveConversation = activeConversation || activeConversationSnapshot;
+  const visibleActiveConversation = activeConversation;
 
   const handleSelectConversation = (conversationId) => {
     setActiveConversationId(conversationId);

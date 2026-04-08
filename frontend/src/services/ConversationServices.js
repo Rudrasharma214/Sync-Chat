@@ -85,27 +85,3 @@ export const getPaginatedConversations = async (searchTerm = "", page = 1, limit
     }
 };
 
-/**
- * Get conversation by ID
- */
-export const getConversationById = async (conversationId) => {
-    try {
-        const response = await api.get(`/conversations/${conversationId}`);
-        logger.info("Get conversation API call successful", null, "ConversationServices");
-        return {
-            success: true,
-            data: response.data.data,
-            message: response.data.message,
-        };
-    } catch (error) {
-        logger.error(
-            "Get conversation API call failed",
-            error.response?.data,
-            "ConversationServices"
-        );
-        return {
-            success: false,
-            message: error.response?.data?.message || error.message,
-        };
-    }
-};

@@ -115,7 +115,9 @@ export const getConversationWithValidation = async (conversationId, userId) => {
             };
         }
 
-        const isParticipant = conversation.participants.some(p => p._id.toString() === userId);
+        const isParticipant = conversation.participants.some(
+            (participant) => participant?._id?.toString() === userId?.toString()
+        );
         if (!isParticipant) {
             return {
                 success: false,

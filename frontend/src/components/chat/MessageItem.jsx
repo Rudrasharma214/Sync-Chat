@@ -65,6 +65,7 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
     const [isDeleting, setIsDeleting] = useState(false);
 
     const canManageMessage = isMine && !isEditing && !message?.deletedForEveryone && !message?.isDeletedForEveryone;
+    const messageTimestamp = getMessageTimestamp(message);
 
     const canEdit = useMemo(() => {
         if (!isMine || message?.deletedForEveryone || message?.isDeletedForEveryone) {
@@ -122,7 +123,6 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
                 <div className="mb-1 flex items-center justify-between gap-3">
                     <p className="text-xs font-semibold opacity-75">{senderName}</p>
                     <div className="flex items-center gap-1.5">
-                        <p className="text-[11px] opacity-70">{getMessageTimestamp(message)}</p>
                         {isMessageEdited(message) ? (
                             <span className="text-[10px] font-medium uppercase tracking-wide opacity-65">edited</span>
                         ) : null}
@@ -206,6 +206,12 @@ const MessageItem = ({ message, currentUserId, onEditMessage, onDeleteMessage })
                 ) : (
                     <p className="text-sm leading-relaxed">{renderedContent || "This message was deleted"}</p>
                 )}
+
+                {!isEditing && messageTimestamp ? (
+                    <div className="mt-1 flex items-center justify-end gap-1.5">
+                        <p className="text-[11px] opacity-70">{messageTimestamp}</p>
+                    </div>
+                ) : null}
 
                 {isMenuOpen && canManageMessage ? (
                     <button

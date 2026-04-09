@@ -38,17 +38,19 @@ export const login = async (req, res, next) => {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
+        const isProd = process.env.NODE_ENV === "production";
+
         res.cookie("accessToken", result.data.accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: isProd,
+            sameSite: isProd ? "None" : "Lax",
             maxAge: env.JWT_ACCESS_COOKIE_MAX_AGE
         });
 
         res.cookie("refreshToken", result.data.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: isProd,
+            sameSite: isProd ? "None" : "Lax",
             maxAge: env.JWT_REFRESH_COOKIE_MAX_AGE
         });
 
@@ -96,10 +98,11 @@ export const refreshToken = async (req, res, next) => {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
+        const isProd = process.env.NODE_ENV === "production";
         res.cookie("accessToken", result.data.accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: isProd,
+            sameSite: isProd ? "None" : "Lax",
             maxAge: env.JWT_ACCESS_COOKIE_MAX_AGE
         });
 

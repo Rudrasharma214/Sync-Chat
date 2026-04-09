@@ -6,24 +6,30 @@ let socketInstance = null;
 let isRefreshingSocketAuth = false;
 
 const resolveSocketUrl = () => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL;
+    const socketUrl = import.meta.env.VITE_SOCKET_URL?.trim();
     if (socketUrl) {
         return socketUrl;
     }
 
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL?.trim();
     if (apiUrl) {
         return apiUrl.replace(/\/api\/?$/, "");
     }
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
         return window.location.origin;
     }
+
+    logger.error(
+        "Missing VITE_SOCKET_URL and VITE_API_URL for socket connection outside localhost",
+        null,
+        "SocketService"
+    );
 
     return "http://localhost:3000";
 };
 
-export const connectSocket = (token) => {
+export const connectSocket = () => {
     if (socketInstance?.connected) {
         return socketInstance;
     }
@@ -38,7 +44,6 @@ export const connectSocket = (token) => {
     socketInstance = io(socketUrl, {
         withCredentials: true,
         transports: ["websocket", "polling"],
-        auth: token ? { token } : {},
         closeOnBeforeunload: true,
         autoConnect: true,
         reconnection: true,
@@ -70,7 +75,6 @@ export const connectSocket = (token) => {
                     return;
                 }
 
-                socketInstance.auth = token ? { token } : {};
                 socketInstance.connect();
             })
             .catch((refreshError) => {

@@ -1,6 +1,8 @@
 import env from './env.js';
 
-const allowedOrigins = ['http://localhost:5173', env.FRONTEND_URL];
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [env.FRONTEND_URL]
+  : ['http://localhost:5173', env.FRONTEND_URL];
 
 export const corsOptions = {
   origin: (origin, callback) => {

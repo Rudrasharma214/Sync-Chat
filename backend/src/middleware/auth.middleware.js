@@ -1,18 +1,33 @@
 import jwt from "jsonwebtoken";
 import logger from "../config/logger.js";
+import env from "../config/env.js";
 import { getUserById } from "../repositories/user.repositories.js";
 import { STATUS } from "../constant/statusCodes.js";
 import { sendErrorResponse } from "../utils/response.js";
 
+const getBearerToken = (authorizationHeader = "") => {
+    if (!authorizationHeader || typeof authorizationHeader !== "string") {
+        return null;
+    }
+
+    const [scheme, token] = authorizationHeader.split(" ");
+
+    if (scheme?.toLowerCase() !== "bearer" || !token) {
+        return null;
+    }
+
+    return token;
+};
+
 export const authenticate = async (req, res, next) => {
     try {
-        const token = req.cookies.accessToken || req.cookies.jwt
+        const token = req.cookies.accessToken || req.cookies.jwt || getBearerToken(req.headers.authorization);
 
         if (!token) {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "No token provided")
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const decoded = jwt.verify(token, env.JWT_SECRET)
 
         if (!decoded) {
             return sendErrorResponse(res, STATUS.UNAUTHORIZED, "Invalid token")
@@ -28,7 +43,13 @@ export const authenticate = async (req, res, next) => {
         req.user = user
         next();
     } catch (e) {
-        logger.log("error in authenticate in middleware", e.message)
-        return sendErrorResponse(res, STATUS.INTERNAL_ERROR, "Internal server error")
+        logger.warn("Authentication failed", {
+            message: e.message,
+            origin: req.headers.origin || null,
+            hasCookie: Boolean(req.headers.cookie),
+            hasAuthorization: Boolean(req.headers.authorization),
+        })
+
+        return sendErrorResponse(res, STATUS.UNAUTHORIZED, "Invalid or expired token")
     }
 }

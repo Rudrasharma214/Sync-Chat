@@ -4,6 +4,17 @@ import { sendResponse, sendErrorResponse } from '../utils/response.js'
 import env from "../config/env.js";
 import { verifyToken } from "../utils/token.js";
 
+const getAuthCookieOptions = () => {
+    const isProd = process.env.NODE_ENV === "production";
+
+    return {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "None" : "Lax",
+        path: "/",
+    };
+};
+
 // Register a new user
 export const signup = async (req, res, next) => {
     try {
@@ -38,19 +49,15 @@ export const login = async (req, res, next) => {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
-        const isProd = process.env.NODE_ENV === "production";
+        const accessCookieOptions = {
+            ...getAuthCookieOptions(),
+            maxAge: env.JWT_ACCESS_COOKIE_MAX_AGE,
+        };
 
-        res.cookie("accessToken", result.data.accessToken, {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? "None" : "Lax",
-            maxAge: env.JWT_ACCESS_COOKIE_MAX_AGE
-        });
+        res.cookie("accessToken", result.data.accessToken, accessCookieOptions);
 
         res.cookie("refreshToken", result.data.refreshToken, {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? "None" : "Lax",
+            ...getAuthCookieOptions(),
             maxAge: env.JWT_REFRESH_COOKIE_MAX_AGE
         });
 
@@ -71,8 +78,8 @@ export const logout = async (req, res, next) => {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
+        res.clearCookie("accessToken", getAuthCookieOptions());
+        res.clearCookie("refreshToken", getAuthCookieOptions());
 
         return sendResponse(res, STATUS.OK, "Logout successful");
     } catch (error) {
@@ -98,11 +105,8 @@ export const refreshToken = async (req, res, next) => {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
-        const isProd = process.env.NODE_ENV === "production";
         res.cookie("accessToken", result.data.accessToken, {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? "None" : "Lax",
+            ...getAuthCookieOptions(),
             maxAge: env.JWT_ACCESS_COOKIE_MAX_AGE
         });
 
@@ -132,8 +136,8 @@ export const changePassword = async (req, res, next) => {
             return sendErrorResponse(res, result.statusCode, result.message, result.error);
         }
 
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
+        res.clearCookie("accessToken", getAuthCookieOptions());
+        res.clearCookie("refreshToken", getAuthCookieOptions());
 
         return sendResponse(res, STATUS.OK, "Password changed successfully");
     } catch (error) {

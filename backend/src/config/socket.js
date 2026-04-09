@@ -13,6 +13,14 @@ let io;
 let pubClient;
 let subClient;
 
+const getHandshakeSummary = (socket) => ({
+  origin: socket.handshake.headers?.origin || null,
+  userAgent: socket.handshake.headers?.["user-agent"] || null,
+  transport: socket.conn?.transport?.name || null,
+  hasCookie: Boolean(socket.handshake.headers?.cookie),
+  hasAuthToken: Boolean(socket.handshake.auth?.token),
+});
+
 const parseCookieHeader = (cookieHeader = "") => {
   return cookieHeader.split(";").reduce((cookies, cookiePart) => {
     const [rawKey, ...rawValueParts] = cookiePart.trim().split("=");
@@ -25,7 +33,11 @@ const parseCookieHeader = (cookieHeader = "") => {
     const value = rawValueParts.join("=").trim();
 
     if (key) {
-      cookies[key] = decodeURIComponent(value || "");
+      try {
+        cookies[key] = decodeURIComponent(value || "");
+      } catch {
+        cookies[key] = value || "";
+      }
     }
 
     return cookies;
@@ -143,9 +155,13 @@ export const initSocket = (server) => {
   pubClient = redisClient.duplicate();
   subClient = redisClient.duplicate();
 
+  const allowedSocketOrigins = process.env.NODE_ENV === 'production'
+    ? [env.FRONTEND_URL]
+    : ['http://localhost:5173', env.FRONTEND_URL];
+
   io = new Server(server, {
     cors: {
-      origin: env.FRONTEND_URL,
+      origin: allowedSocketOrigins,
       credentials: true,
     },
     // Detect closed tabs/connections faster so presence updates promptly.
@@ -170,6 +186,7 @@ export const initSocket = (server) => {
       const token = getTokenFromSocket(socket);
 
       if (!token) {
+        logger.warn("Socket handshake missing token", getHandshakeSummary(socket));
         return next(new Error("Unauthorized"));
       }
 
@@ -177,6 +194,7 @@ export const initSocket = (server) => {
       const userId = getUserIdFromDecodedToken(decodedUser);
 
       if (!userId) {
+        logger.warn("Socket handshake token missing user id", getHandshakeSummary(socket));
         return next(new Error("Unauthorized"));
       }
 
@@ -189,6 +207,7 @@ export const initSocket = (server) => {
     } catch (error) {
       logger.warn("Socket authentication failed", {
         message: error.message,
+        ...getHandshakeSummary(socket),
       });
       return next(new Error("Unauthorized"));
     }
@@ -197,9 +216,16 @@ export const initSocket = (server) => {
   io.on("connection", async (socket) => {
     const userId = String(socket.user?.userId);
 
+    logger.info("Socket connected", {
+      socketId: socket.id,
+      userId: socket.user?.userId || null,
+      ...getHandshakeSummary(socket),
+    });
+
     if (!userId || userId === "undefined") {
       logger.warn("Socket connected without a valid userId", {
         socketId: socket.id,
+        ...getHandshakeSummary(socket),
       });
       socket.disconnect(true);
       return;

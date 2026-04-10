@@ -240,8 +240,8 @@ const ChatDashboard = () => {
   };
 
   return (
-    <main className="theme-bg h-screen w-screen overflow-hidden">
-      <div className="theme-border flex h-full w-full overflow-hidden border bg-[linear-gradient(120deg,var(--surface)_0%,var(--surface-soft)_100%)]">
+    <main className="theme-bg h-[100dvh] w-screen overflow-hidden">
+      <div className="theme-border flex h-full min-h-0 w-full overflow-hidden border bg-[linear-gradient(120deg,var(--surface)_0%,var(--surface-soft)_100%)]">
         <SidebarMenu
           isDarkMode={isDarkMode}
           activeSection="chat"
@@ -252,12 +252,12 @@ const ChatDashboard = () => {
           onLogout={handleLogout}
         />
 
-        <div className="flex min-w-0 flex-1 pl-14 sm:pl-0">
+        <div className="flex min-h-0 min-w-0 flex-1 pl-14 sm:pl-0">
           <div
             className={
               isChatOpen
                 ? "hidden sm:flex sm:w-[300px] lg:w-[320px]"
-                : "flex w-full sm:w-[300px] lg:w-[320px]"
+                : "flex min-h-0 w-full sm:w-[300px] lg:w-[320px]"
             }
           >
             <ConversationList
@@ -280,7 +280,7 @@ const ChatDashboard = () => {
           </div>
 
           <div
-            className={isChatOpen ? "flex min-w-0 flex-1" : "hidden sm:flex sm:min-w-0 sm:flex-1"}
+            className={isChatOpen ? "flex min-h-0 min-w-0 flex-1" : "hidden sm:flex sm:min-h-0 sm:min-w-0 sm:flex-1"}
           >
             {visibleActiveConversation ? (
               <ChatWindow

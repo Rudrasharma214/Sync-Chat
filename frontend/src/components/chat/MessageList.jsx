@@ -129,7 +129,7 @@ const MessageList = ({ socket, conversationId, currentUserId, searchTerm = "", o
     }
 
     return (
-        <div ref={listRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-3 py-4 sm:px-5 sm:py-4">
+        <div ref={listRef} onScroll={handleScroll} className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5 sm:py-4">
             <div className="space-y-3">
                 {filteredMessages.map((message) => (
                     <MessageItem

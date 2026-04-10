@@ -114,7 +114,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     };
 
     return (
-        <section className="theme-surface relative flex h-full min-w-0 flex-1 flex-col">
+        <section className="theme-surface relative flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <header className="theme-border flex items-center justify-between gap-2 border-b px-2.5 py-2 sm:px-4 sm:py-2.5">
                 <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
                     <button

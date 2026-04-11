@@ -2,20 +2,96 @@ import { STATUS } from "../constant/statusCodes.js";
 import * as notificationPreferenceRepo from "../repositories/notificationPreference.repositories.js";
 import * as messageStatusRepo from "../repositories/messageStatus.repositories.js";
 
+const normalizeSubscription = (subscription) => {
+    if (!subscription || typeof subscription !== "object") {
+        return null;
+    }
+
+    const endpoint = typeof subscription.endpoint === "string" ? subscription.endpoint.trim() : "";
+    const p256dh = subscription?.keys?.p256dh;
+    const auth = subscription?.keys?.auth;
+
+    if (!endpoint || !p256dh || !auth) {
+        return null;
+    }
+
+    return {
+        endpoint,
+        keys: {
+            p256dh,
+            auth,
+        },
+    };
+};
+
+const collectSubscriptions = (payload = {}) => {
+    const normalized = [];
+
+    if (Array.isArray(payload.subscriptions)) {
+        for (const subscription of payload.subscriptions) {
+            const parsed = normalizeSubscription(subscription);
+            if (parsed) {
+                normalized.push(parsed);
+            }
+        }
+    }
+
+    if (payload.subscription) {
+        const parsed = normalizeSubscription(payload.subscription);
+        if (parsed) {
+            normalized.push(parsed);
+        }
+    }
+
+    if (payload.endpoint || payload?.keys?.p256dh || payload?.keys?.auth) {
+        const parsed = normalizeSubscription({
+            endpoint: payload.endpoint,
+            keys: payload.keys,
+        });
+
+        if (parsed) {
+            normalized.push(parsed);
+        }
+    }
+
+    return normalized;
+};
+
 const normalizePreference = (preference, userId) => {
     if (preference) {
-        return preference;
+        const plainPreference = typeof preference.toObject === "function"
+            ? preference.toObject()
+            : preference;
+
+        const normalizedSubscriptions = Array.isArray(plainPreference.subscriptions)
+            ? plainPreference.subscriptions
+            : [];
+
+        if (!normalizedSubscriptions.length && plainPreference.endpoint && plainPreference?.keys?.p256dh && plainPreference?.keys?.auth) {
+            normalizedSubscriptions.push({
+                endpoint: plainPreference.endpoint,
+                keys: {
+                    p256dh: plainPreference.keys.p256dh,
+                    auth: plainPreference.keys.auth,
+                },
+            });
+        }
+
+        return {
+            ...plainPreference,
+            subscriptions: normalizedSubscriptions,
+        };
     }
 
     return {
         userId,
         notificationsEnabled: true,
-        endpoint: "",
-        keys: {
-            p256dh: "",
-            auth: "",
-        },
+        subscriptions: [],
     };
+};
+
+export const getNotificationPreferenceByUserId = async (userId) => {
+    return await notificationPreferenceRepo.getNotificationPreferenceByUserId(userId);
 };
 
 export const getPreferences = async (userId) => {
@@ -39,24 +115,35 @@ export const getPreferences = async (userId) => {
 
 export const updatePreferences = async (userId, payload) => {
     try {
-        const updateData = {
-            notificationsEnabled: typeof payload.notificationsEnabled === "boolean" ? payload.notificationsEnabled : true,
-            endpoint: typeof payload.endpoint === "string" ? payload.endpoint.trim() : "",
-            keys: {
-                p256dh: payload?.keys?.p256dh || "",
-                auth: payload?.keys?.auth || "",
-            },
-        };
+        const updateData = { userId };
 
-        const preference = await notificationPreferenceRepo.upsertNotificationPreference(userId, {
-            ...updateData,
-            userId,
-        });
+        if (typeof payload.notificationsEnabled === "boolean") {
+            updateData.notificationsEnabled = payload.notificationsEnabled;
+        }
+
+        if (typeof payload.enabled === "boolean") {
+            updateData.notificationsEnabled = payload.enabled;
+        }
+
+        const subscriptions = collectSubscriptions(payload);
+
+        let preference = await notificationPreferenceRepo.upsertNotificationPreference(userId, updateData);
+
+        for (const subscription of subscriptions) {
+            preference = await notificationPreferenceRepo.addSubscription(userId, subscription);
+        }
+
+        if (payload?.removeSubscriptionEndpoint) {
+            preference = await notificationPreferenceRepo.removeSubscriptionByEndpoint(
+                userId,
+                String(payload.removeSubscriptionEndpoint)
+            );
+        }
 
         return {
             success: true,
             message: "Notification preferences updated successfully",
-            data: preference,
+            data: normalizePreference(preference, userId),
         };
     } catch (error) {
         return {
@@ -82,7 +169,7 @@ export const toggleNotifications = async (userId, enabled) => {
         return {
             success: true,
             message: "Notification toggle updated successfully",
-            data: preference,
+            data: normalizePreference(preference, userId),
         };
     } catch (error) {
         return {

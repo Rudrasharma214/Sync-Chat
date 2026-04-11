@@ -36,3 +36,27 @@ export const updateLastNotifiedAt = async (userId, notifiedAt = new Date()) => {
 export const deleteNotificationPreference = async (userId) => {
     return await NotificationPreference.findOneAndDelete({ userId });
 };
+
+export const addSubscription = async (userId, subscription) => {
+    return await NotificationPreference.findOneAndUpdate(
+        {
+            userId,
+            "subscriptions.endpoint": { $ne: subscription.endpoint },
+        },
+        {
+            $push: { subscriptions: subscription },
+        },
+        {
+            returnDocument: "after",
+            upsert: true,
+        }
+    );
+};
+
+export const removeSubscriptionByEndpoint = async (userId, endpoint) => {
+    return await NotificationPreference.findOneAndUpdate(
+        { userId },
+        { $pull: { subscriptions: { endpoint } } },
+        { returnDocument: "after" }
+    );
+};

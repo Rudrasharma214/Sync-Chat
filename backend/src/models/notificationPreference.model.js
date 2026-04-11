@@ -12,21 +12,25 @@ const notificationPreferenceSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
-        endpoint: {
-            type: String,
-            default: "",
-            trim: true,
-        },
-        keys: {
-            p256dh: {
-                type: String,
-                default: "",
+        subscriptions: [
+            {
+                endpoint: {
+                    type: String,
+                    required: true,
+                    trim: true,
+                },
+                keys: {
+                    p256dh: {
+                        type: String,
+                        required: true,
+                    },
+                    auth: {
+                        type: String,
+                        required: true,
+                    },
+                },
             },
-            auth: {
-                type: String,
-                default: "",
-            },
-        }
+        ],
     },
     {
         timestamps: true,
@@ -34,6 +38,7 @@ const notificationPreferenceSchema = new mongoose.Schema(
 );
 
 notificationPreferenceSchema.index({ notificationsEnabled: 1, updatedAt: -1 });
+notificationPreferenceSchema.index({ userId: 1, "subscriptions.endpoint": 1 });
 
 const NotificationPreference = mongoose.model(
     "NotificationPreference",

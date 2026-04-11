@@ -26,6 +26,7 @@ export const useNotificationPreferences = () => {
 export const useUnreadSummary = (limit = 5) => {
   return useQuery({
     queryKey: notificationQueryKeys.unreadSummary(limit),
+    refetchInterval: 15000,
     queryFn: async () => {
       const result = await notificationService.getUnreadSummary(limit);
       if (!result.success) {

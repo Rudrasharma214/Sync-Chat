@@ -6,7 +6,13 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useNotificationPreferences } from "../hooks/useQueries/notificationQueries";
 import { useChangePassword } from "../hooks/useMutation/authMutation";
-import { useToggleNotifications } from "../hooks/useMutation/notificationMutation";
+import { useUpdateNotificationPreferences } from "../hooks/useMutation/notificationMutation";
+import {
+  getNotificationPermission,
+  isPushSupported,
+  subscribeUser,
+  unsubscribeUser,
+} from "../services/BrowserPushService";
 import SettingsAppearance from "../components/settings/SettingsAppearance";
 import SettingsNotifications from "../components/settings/SettingsNotifications";
 import SettingsProfile from "../components/settings/SettingsProfile";
@@ -47,20 +53,49 @@ const Settings = () => {
     isError: isPreferencesError,
   } = useNotificationPreferences();
 
-  const toggleNotificationsMutation = useToggleNotifications();
+  const updateNotificationPreferencesMutation = useUpdateNotificationPreferences();
   const changePasswordMutation = useChangePassword();
 
   const notificationsEnabled = notificationPreferences?.notificationsEnabled ?? true;
 
-  const handleToggleNotifications = () => {
-    toggleNotificationsMutation.mutate(!notificationsEnabled, {
-      onSuccess: () => {
-        toast.success(`Notifications ${notificationsEnabled ? "disabled" : "enabled"}`);
-      },
-      onError: (error) => {
-        toast.error(error.message || "Failed to update notifications");
-      },
-    });
+  const handleToggleNotifications = async () => {
+    const nextEnabled = !notificationsEnabled;
+
+    try {
+      if (nextEnabled) {
+        if (!isPushSupported()) {
+          toast.error("Push notifications are not supported in this browser.");
+          return;
+        }
+
+        const permission = getNotificationPermission();
+        if (permission === "denied") {
+          toast.error("Notification permission is blocked in browser settings.");
+          return;
+        }
+
+        const subscription = await subscribeUser();
+
+        await updateNotificationPreferencesMutation.mutateAsync({
+          notificationsEnabled: true,
+          subscription,
+        });
+
+        toast.success("Notifications enabled");
+        return;
+      }
+
+      const unsubscribed = await unsubscribeUser();
+
+      await updateNotificationPreferencesMutation.mutateAsync({
+        notificationsEnabled: false,
+        removeSubscriptionEndpoint: unsubscribed?.endpoint,
+      });
+
+      toast.success("Notifications disabled");
+    } catch (error) {
+      toast.error(error.message || "Failed to update notifications");
+    }
   };
 
   const handlePasswordChange = (event) => {
@@ -139,7 +174,7 @@ const Settings = () => {
                 notificationsEnabled={notificationsEnabled}
                 isLoadingPreferences={isLoadingPreferences}
                 isPreferencesError={isPreferencesError}
-                isPending={toggleNotificationsMutation.isPending}
+                isPending={updateNotificationPreferencesMutation.isPending}
                 onToggleNotifications={handleToggleNotifications}
               />
             ) : activeSection === "profile" ? (

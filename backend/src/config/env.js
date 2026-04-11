@@ -48,6 +48,9 @@ const env = {
         db: Number(process.env.REDIS_DB || 0),
         tlsEnabled: toBool(process.env.REDIS_TLS, false),
     },
+    VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || '',
+    VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || '',
+    VAPID_SUBJECT: process.env.VAPID_SUBJECT || 'mailto:no-reply@sync-chat.local',
 };
 
 export default env;

@@ -1,4 +1,5 @@
 import MessageStatus from '../models/messageStatus.model.js';
+import Message from '../models/message.model.js';
 
 export const createMessageStatus = async (statusData) => {
     const messageStatus = new MessageStatus(statusData);
@@ -18,11 +19,19 @@ export const getMessageStatusesByUserId = async (userId) => {
 };
 
 export const getUnreadCountByUserId = async (userId) => {
-    return await MessageStatus.countDocuments({ userId, status: "unread" });
+    return await MessageStatus.countDocuments({
+        userId,
+        status: "unread",
+        deletedForMe: { $ne: true },
+    });
 };
 
 export const getUnreadStatusesByUserId = async (userId, limit = 20) => {
-    return await MessageStatus.find({ userId, status: "unread" })
+    return await MessageStatus.find({
+        userId,
+        status: "unread",
+        deletedForMe: { $ne: true },
+    })
         .sort({ updatedAt: -1 })
         .limit(limit)
         .populate({
@@ -65,4 +74,56 @@ export const deleteMessageStatusesByMessageIds = async (messageIds = []) => {
     return await MessageStatus.deleteMany({
         messageId: { $in: messageIds },
     });
+};
+
+export const upsertUnreadStatusesForMessage = async (messageId, userIds = []) => {
+    if (!messageId || !Array.isArray(userIds) || !userIds.length) {
+        return;
+    }
+
+    await Promise.all(
+        userIds.map((userId) =>
+            MessageStatus.findOneAndUpdate(
+                { messageId, userId },
+                {
+                    $set: {
+                        status: "unread",
+                        readAt: null,
+                        deletedForMe: false,
+                    },
+                },
+                {
+                    returnDocument: "after",
+                    upsert: true,
+                }
+            )
+        )
+    );
+};
+
+export const markConversationMessagesAsRead = async (conversationId, userId) => {
+    if (!conversationId || !userId) {
+        return { modifiedCount: 0 };
+    }
+
+    const conversationMessages = await Message.find({ conversationId }).select("_id");
+    if (!conversationMessages.length) {
+        return { modifiedCount: 0 };
+    }
+
+    const messageIds = conversationMessages.map((message) => message._id);
+
+    return await MessageStatus.updateMany(
+        {
+            userId,
+            messageId: { $in: messageIds },
+            status: { $ne: "read" },
+        },
+        {
+            $set: {
+                status: "read",
+                readAt: new Date(),
+            },
+        }
+    );
 };

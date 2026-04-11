@@ -53,3 +53,31 @@ export const subscribeBrowserPush = async () => {
 
   return subscription.toJSON();
 };
+
+export const subscribeUser = async () => {
+  return subscribeBrowserPush();
+};
+
+export const getCurrentSubscription = async () => {
+  if (!isPushSupported()) {
+    return null;
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+  return subscription;
+};
+
+export const unsubscribeUser = async () => {
+  const subscription = await getCurrentSubscription();
+  if (!subscription) {
+    return null;
+  }
+
+  const endpoint = subscription.endpoint;
+  await subscription.unsubscribe();
+
+  return {
+    endpoint,
+  };
+};

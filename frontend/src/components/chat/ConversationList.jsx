@@ -14,6 +14,7 @@ const ConversationList = ({
   isUserSearchLoading = false,
   onSelectUser,
   onOpenCreateGroup,
+  unreadCount = 0,
   isLoading = false,
   isError = false,
   errorMessage = "",
@@ -59,7 +60,14 @@ const ConversationList = ({
       <div className="flex h-full min-h-0 flex-col p-3 sm:p-4">
         <div className="mb-3 flex items-center gap-2">
           <div className="min-w-0 flex-1">
-            <p className="theme-text text-2xl font-semibold">Sync Chat</p>
+            <div className="flex items-center gap-2">
+              <p className="theme-text text-2xl font-semibold">Sync Chat</p>
+              {unreadCount > 0 ? (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-slate-900">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              ) : null}
+            </div>
           </div>
           <button
             type="button"

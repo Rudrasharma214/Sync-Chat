@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 import { STATUS } from "../constant/statusCodes.js";
 import * as conversationRepo from "../repositories/conversation.repositories.js";
 import * as messageRepo from "../repositories/message.repository.js";
+import * as messageStatusRepo from "../repositories/messageStatus.repositories.js";
+import * as notificationService from "./notification.service.js";
+import { sendBrowserPush } from "../config/push.js";
 import { emitToConversation, emitToUser } from "../config/socket.js";
 
 const UPDATE_WINDOW_MS = 2 * 60 * 60 * 1000;
@@ -10,6 +13,57 @@ const DELETED_MESSAGE_TEXT = "This message was deleted";
 
 const isParticipant = (conversation, userId) =>
     conversation.participants.some((participantId) => participantId.toString() === userId.toString());
+
+const sendPushToRecipients = async (recipientIds, message, senderName) => {
+    if (!Array.isArray(recipientIds) || !recipientIds.length) {
+        return;
+    }
+
+    await Promise.all(
+        recipientIds.map(async (recipientId) => {
+            try {
+                const preference = await notificationService.getNotificationPreferenceByUserId(recipientId);
+                const notificationsEnabled = preference?.notificationsEnabled !== false;
+                const subscriptions = Array.isArray(preference?.subscriptions)
+                    ? preference.subscriptions
+                    : [];
+
+                if (!notificationsEnabled || !subscriptions.length) {
+                    return;
+                }
+
+                const payload = {
+                    title: "New Message",
+                    body: message?.text || "You have a new message",
+                    sender: senderName,
+                    data: {
+                        url: "/chat",
+                        conversationId: String(message?.conversationId || ""),
+                        messageId: String(message?._id || ""),
+                    },
+                };
+
+                await Promise.all(
+                    subscriptions.map(async (subscription) => {
+                        const result = await sendBrowserPush(subscription, payload);
+
+                        if (
+                            !result.success
+                            && [404, 410].includes(Number(result.statusCode))
+                            && subscription?.endpoint
+                        ) {
+                            await notificationService.updatePreferences(recipientId, {
+                                removeSubscriptionEndpoint: subscription.endpoint,
+                            });
+                        }
+                    })
+                );
+            } catch {
+                // Ignore push failures so message sending never crashes.
+            }
+        })
+    );
+};
 
 export const sendMessage = async (userId, payload) => {
     try {
@@ -77,6 +131,12 @@ export const sendMessage = async (userId, payload) => {
             messageType: "text",
         });
 
+        const recipientIds = conversation.participants
+            .filter((participantId) => participantId.toString() !== userId.toString())
+            .map((participantId) => participantId.toString());
+
+        await messageStatusRepo.upsertUnreadStatusesForMessage(message._id, recipientIds);
+
         await conversationRepo.updateConversation(conversationId, {
             lastMessage: message._id,
             lastMessageAt: new Date(),
@@ -95,6 +155,9 @@ export const sendMessage = async (userId, payload) => {
                 },
             },
         ]);
+
+        const senderName = populatedMessage?.senderId?.fullname || "Sync Chat";
+        await sendPushToRecipients(recipientIds, populatedMessage, senderName);
 
         emitToConversation(conversationId, "newMessage", populatedMessage);
 
@@ -153,6 +216,10 @@ export const getMessagesByConversation = async (userId, conversationId, page = 1
             normalizedPage,
             normalizedLimit
         );
+
+        if (normalizedPage === 1) {
+            await messageStatusRepo.markConversationMessagesAsRead(conversationId, userId);
+        }
 
         return {
             success: true,

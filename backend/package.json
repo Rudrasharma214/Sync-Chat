@@ -12,9 +12,9 @@
   "type": "module",
   "license": "ISC",
   "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
     "argon2": "^0.44.0",
     "axios": "^1.13.6",
-    "@socket.io/redis-adapter": "^8.3.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -24,6 +24,7 @@
     "mongoose": "^9.3.1",
     "sib-api-v3-sdk": "^8.5.0",
     "socket.io": "^4.8.3",
+    "web-push": "^3.6.7",
     "winston": "^3.19.0"
   },
   "devDependencies": {

@@ -10,6 +10,7 @@ import CreateGroupModal from "../components/group/CreateGroupModal";
 import { useConversations } from "../hooks/useQueries/conversationQueries";
 import { useSocket } from "../hooks/useSocket";
 import { useSearchUsers } from "../hooks/useQueries/authQueries";
+import { useUnreadSummary } from "../hooks/useQueries/notificationQueries";
 import { useCreateOrGetDirectConversation } from "../hooks/useMutation/conversationMutation";
 import { logger } from "../utils/logger";
 
@@ -98,6 +99,9 @@ const ChatDashboard = () => {
   } = useSearchUsers(debouncedSearchTerm, {
     enabled: Boolean(debouncedSearchTerm),
   });
+
+  const { data: unreadSummary } = useUnreadSummary(5);
+  const unreadCount = Number(unreadSummary?.unreadCount || 0);
 
   useEffect(() => {
     if (!socket) {
@@ -284,6 +288,7 @@ const ChatDashboard = () => {
               isUserSearchLoading={isUserSearchLoading}
               onSelectUser={handleSelectUser}
               onOpenCreateGroup={() => setIsCreateGroupOpen(true)}
+              unreadCount={unreadCount}
               isLoading={isConversationsLoading}
               isError={isConversationsError}
               errorMessage={conversationsError?.message}

@@ -25,4 +25,11 @@ router.get("/", authenticate, conversationController.getAllConversations);
  */
 router.get("/:conversationId", authenticate, conversationController.getConversation);
 
+/**
+ * @route DELETE /api/conversations/:conversationId
+ * @desc Delete a direct conversation and all of its messages
+ * @access Private
+ */
+router.delete("/:conversationId", authenticate, conversationController.deleteConversation);
+
 export default router;

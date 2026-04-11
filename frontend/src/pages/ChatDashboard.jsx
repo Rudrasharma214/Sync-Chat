@@ -232,6 +232,17 @@ const ChatDashboard = () => {
     setIsChatOpen(false);
   };
 
+  const handleConversationDeleted = (deletedConversationId) => {
+    if (!deletedConversationId) {
+      return;
+    }
+
+    if (String(activeConversationId) === String(deletedConversationId)) {
+      setActiveConversationId(null);
+      setIsChatOpen(false);
+    }
+  };
+
   const handleLogout = async () => {
     const result = await logout();
     if (result?.success) {
@@ -288,6 +299,7 @@ const ChatDashboard = () => {
                 conversationId={visibleActiveConversation.id}
                 activeConversation={visibleActiveConversation}
                 onBack={handleBackToList}
+                onConversationDeleted={handleConversationDeleted}
               />
             ) : (
               <section className="theme-surface flex h-full w-full items-center justify-center p-4 text-sm theme-muted">

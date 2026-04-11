@@ -1,6 +1,10 @@
 import { STATUS } from "../constant/statusCodes.js";
+import mongoose from "mongoose";
 import * as conversationRepo from "../repositories/conversation.repositories.js";
+import * as messageRepo from "../repositories/message.repository.js";
+import * as messageStatusRepo from "../repositories/messageStatus.repositories.js";
 import * as userRepo from "../repositories/user.repositories.js";
+import { emitToConversation } from "../config/socket.js";
 
 /**
  * Create or get direct conversation between two users
@@ -305,6 +309,84 @@ export const getPaginatedConversations = async (userId, searchTerm = "", page = 
             success: false,
             statusCode: STATUS.INTERNAL_ERROR,
             message: "Error fetching conversations",
+            error: error.message,
+        };
+    }
+};
+
+/**
+ * Delete a direct conversation and all related messages/statuses
+ * @param {string} conversationId - Conversation ID
+ * @param {string} userId - Current user ID
+ * @returns {object} Response object with success, statusCode, message, data
+ */
+export const deleteConversationWithMessages = async (conversationId, userId) => {
+    try {
+        if (!conversationId || !mongoose.Types.ObjectId.isValid(conversationId)) {
+            return {
+                success: false,
+                statusCode: STATUS.BAD_REQUEST,
+                message: "Valid conversation ID is required",
+            };
+        }
+
+        const conversation = await conversationRepo.getConversationById(conversationId);
+
+        if (!conversation) {
+            return {
+                success: false,
+                statusCode: STATUS.NOT_FOUND,
+                message: "Conversation not found",
+            };
+        }
+
+        const isParticipant = conversation.participants.some(
+            (participant) => participant?.toString() === userId?.toString()
+        );
+
+        if (!isParticipant) {
+            return {
+                success: false,
+                statusCode: STATUS.FORBIDDEN,
+                message: "You are not a participant of this conversation",
+            };
+        }
+
+        if (conversation.type === "group") {
+            return {
+                success: false,
+                statusCode: STATUS.BAD_REQUEST,
+                message: "Group conversations must be deleted from group settings",
+            };
+        }
+
+        const messageIds = await messageRepo.getMessageIdsByConversationId(conversationId);
+
+        if (messageIds.length) {
+            await messageStatusRepo.deleteMessageStatusesByMessageIds(messageIds);
+            await messageRepo.deleteMessagesByConversationId(conversationId);
+        }
+
+        await conversationRepo.deleteConversation(conversationId);
+
+        emitToConversation(conversationId, "conversationDeleted", {
+            conversationId,
+        });
+
+        return {
+            success: true,
+            statusCode: STATUS.OK,
+            message: "Conversation and all messages deleted successfully",
+            data: {
+                conversationId,
+                deletedMessages: messageIds.length,
+            },
+        };
+    } catch (error) {
+        return {
+            success: false,
+            statusCode: STATUS.INTERNAL_ERROR,
+            message: "Error deleting conversation",
             error: error.message,
         };
     }

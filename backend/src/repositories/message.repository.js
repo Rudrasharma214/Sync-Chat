@@ -11,6 +11,11 @@ export const getMessageById = async (messageId) => {
     return await Message.findById(messageId);
 };
 
+export const getMessageIdsByConversationId = async (conversationId) => {
+    const messages = await Message.find({ conversationId }).select("_id");
+    return messages.map((message) => message._id);
+};
+
 export const getPaginatedMessagesByConversation = async (conversationId, userId, page = 1, limit = 20) => {
     const skip = (page - 1) * limit;
 
@@ -88,4 +93,8 @@ export const upsertDeleteForMeStatus = async (messageId, userId) => {
         { $set: { deletedForMe: true } },
         { returnDocument: "after", upsert: true }
     );
+};
+
+export const deleteMessagesByConversationId = async (conversationId) => {
+    return await Message.deleteMany({ conversationId });
 };

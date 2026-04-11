@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Phone, Search, Users, X, Video } from "lucide-react";
+import toast from "react-hot-toast";
+import { ArrowLeft, MoreVertical, Phone, Search, Users, X, Video } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useDeleteMessage, useUpdateMessage } from "../../hooks/useMutation/messageMutation";
+import { useDeleteConversation } from "../../hooks/useMutation/conversationMutation";
 import MessageInput from "./MessageInput";
 import MessageList from "./MessageList";
 import ContactProfileModal from "./ContactProfileModal";
@@ -10,7 +12,7 @@ import GroupDetailsPanel from "../group/GroupDetailsPanel";
 const iconBtnClass =
     "inline-flex h-7 w-7 items-center justify-center rounded-md border theme-border theme-muted bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500 sm:h-8 sm:w-8 sm:rounded-lg";
 
-const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
+const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConversationDeleted }) => {
     const { authUser } = useAuth();
     const currentUserId = authUser?._id || authUser?.id || null;
 
@@ -19,10 +21,13 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isGroupPanelOpen, setIsGroupPanelOpen] = useState(false);
     const [isProfilePanelOpen, setIsProfilePanelOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const typingTimeoutRef = useRef(null);
+    const menuContainerRef = useRef(null);
 
     const updateMessageMutation = useUpdateMessage();
     const deleteMessageMutation = useDeleteMessage();
+    const deleteConversationMutation = useDeleteConversation();
 
     useEffect(() => {
         if (!socket || !conversationId) {
@@ -58,7 +63,25 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     useEffect(() => {
         setIsGroupPanelOpen(false);
         setIsProfilePanelOpen(false);
+        setIsMenuOpen(false);
     }, [conversationId]);
+
+    useEffect(() => {
+        if (!isMenuOpen) {
+            return;
+        }
+
+        const handleOutsideClick = (event) => {
+            if (menuContainerRef.current && !menuContainerRef.current.contains(event.target)) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+        };
+    }, [isMenuOpen]);
 
     const typingText = useMemo(() => (isTyping ? "typing..." : ""), [isTyping]);
     const isGroupConversation = activeConversation?.type === "group";
@@ -110,6 +133,29 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
     const handleOpenProfile = () => {
         if (!isGroupConversation) {
             setIsProfilePanelOpen(true);
+        }
+    };
+
+    const handleDeleteConversation = async () => {
+        if (!conversationId || isGroupConversation || deleteConversationMutation.isPending) {
+            return;
+        }
+
+        const shouldDelete = window.confirm(
+            "Delete this conversation? This will permanently remove all messages for everyone."
+        );
+
+        if (!shouldDelete) {
+            return;
+        }
+
+        try {
+            await deleteConversationMutation.mutateAsync(conversationId);
+            setIsMenuOpen(false);
+            toast.success("Conversation deleted");
+            onConversationDeleted?.(conversationId);
+        } catch (error) {
+            toast.error(error.message || "Failed to delete conversation");
         }
     };
 
@@ -223,7 +269,36 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack }) => {
                                 <Users className="h-4 w-4" />
                             </span>
                         </button>
-                    ) : null}
+                    ) : (
+                        <div className="relative" ref={menuContainerRef}>
+                            <button
+                                type="button"
+                                className="inline-flex"
+                                onClick={() => setIsMenuOpen((prev) => !prev)}
+                                aria-label="Conversation options"
+                                title="Conversation options"
+                            >
+                                <span className={iconBtnClass}>
+                                    <MoreVertical className="h-4 w-4" />
+                                </span>
+                            </button>
+
+                            {isMenuOpen ? (
+                                <div className="theme-border absolute right-0 top-10 z-20 min-w-[220px] rounded-xl border bg-[var(--surface)] p-1 shadow-xl">
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteConversation}
+                                        disabled={deleteConversationMutation.isPending}
+                                        className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {deleteConversationMutation.isPending
+                                            ? "Deleting conversation..."
+                                            : "Delete conversation"}
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                    )}
                 </div>
             </header>
 

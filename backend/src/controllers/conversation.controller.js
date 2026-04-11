@@ -76,3 +76,29 @@ export const getAllConversations = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * Delete conversation by ID for current user
+ * @route DELETE /api/conversations/:conversationId
+ * @access Private
+ */
+export const deleteConversation = async (req, res, next) => {
+    try {
+        const { conversationId } = req.params;
+        const { _id: userId } = req.user;
+
+        if (!conversationId) {
+            return sendErrorResponse(res, STATUS.BAD_REQUEST, "Conversation ID is required");
+        }
+
+        const result = await conversationService.deleteConversationWithMessages(conversationId, userId);
+
+        if (!result.success) {
+            return sendErrorResponse(res, result.statusCode, result.message, result.error);
+        }
+
+        return sendResponse(res, result.statusCode, result.message, result.data);
+    } catch (error) {
+        next(error);
+    }
+};

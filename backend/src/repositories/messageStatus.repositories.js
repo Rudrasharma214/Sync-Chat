@@ -56,3 +56,13 @@ export const upsertMessageStatus = async (messageId, userId, updateData) => {
 export const deleteMessageStatus = async (id) => {
     return await MessageStatus.findByIdAndDelete(id);
 };
+
+export const deleteMessageStatusesByMessageIds = async (messageIds = []) => {
+    if (!Array.isArray(messageIds) || !messageIds.length) {
+        return { deletedCount: 0 };
+    }
+
+    return await MessageStatus.deleteMany({
+        messageId: { $in: messageIds },
+    });
+};

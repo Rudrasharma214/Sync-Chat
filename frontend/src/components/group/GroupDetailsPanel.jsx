@@ -12,6 +12,7 @@ import {
 import { useSearchUsers } from "../../hooks/useQueries/authQueries";
 import { useGroupById } from "../../hooks/useQueries/groupQueries";
 import DetailPopupLayout from "../chat/DetailPopupLayout";
+import DeleteConfirmModal from "../chat/DeleteConfirmModal";
 
 const FALLBACK_AVATAR =
     "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=140&q=80";
@@ -38,6 +39,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
     const [avatarDraft, setAvatarDraft] = useState("");
     const [activeTab, setActiveTab] = useState("overview");
     const [isEditMode, setIsEditMode] = useState(false);
+    const [isDeleteGroupConfirmOpen, setIsDeleteGroupConfirmOpen] = useState(false);
 
     const { data: group, isLoading: isGroupLoading } = useGroupById(groupId, {
         enabled: Boolean(groupId && isOpen),
@@ -155,14 +157,10 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
             return;
         }
 
-        const confirmed = window.confirm("Delete this group permanently?");
-        if (!confirmed) {
-            return;
-        }
-
         try {
             await deleteGroupMutation.mutateAsync(groupId);
             toast.success("Group deleted");
+            setIsDeleteGroupConfirmOpen(false);
             onDeleted?.(groupId);
             onClose?.();
         } catch (error) {
@@ -277,7 +275,7 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                         {canDeleteGroup ? (
                             <button
                                 type="button"
-                                onClick={handleDeleteGroup}
+                                onClick={() => setIsDeleteGroupConfirmOpen(true)}
                                 disabled={deleteGroupMutation.isPending}
                                 className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                             >
@@ -423,6 +421,15 @@ const GroupDetailsPanel = ({ groupId, isOpen, onClose, onDeleted }) => {
                     No {activeTab} available for this group yet.
                 </div>
             )}
+
+            <DeleteConfirmModal
+                isOpen={isDeleteGroupConfirmOpen}
+                title="Delete group?"
+                description="This will permanently delete this group and all related conversation messages."
+                isLoading={deleteGroupMutation.isPending}
+                onCancel={() => setIsDeleteGroupConfirmOpen(false)}
+                onConfirm={handleDeleteGroup}
+            />
         </DetailPopupLayout>
     );
 };

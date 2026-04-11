@@ -8,6 +8,7 @@ import MessageInput from "./MessageInput";
 import MessageList from "./MessageList";
 import ContactProfileModal from "./ContactProfileModal";
 import GroupDetailsPanel from "../group/GroupDetailsPanel";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 const iconBtnClass =
     "inline-flex h-7 w-7 items-center justify-center rounded-md border theme-border theme-muted bg-[var(--surface-soft)] transition hover:border-amber-500/70 hover:text-amber-500 sm:h-8 sm:w-8 sm:rounded-lg";
@@ -22,6 +23,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
     const [isGroupPanelOpen, setIsGroupPanelOpen] = useState(false);
     const [isProfilePanelOpen, setIsProfilePanelOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isDeleteConversationOpen, setIsDeleteConversationOpen] = useState(false);
     const typingTimeoutRef = useRef(null);
     const menuContainerRef = useRef(null);
 
@@ -64,6 +66,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
         setIsGroupPanelOpen(false);
         setIsProfilePanelOpen(false);
         setIsMenuOpen(false);
+        setIsDeleteConversationOpen(false);
     }, [conversationId]);
 
     useEffect(() => {
@@ -141,17 +144,10 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
             return;
         }
 
-        const shouldDelete = window.confirm(
-            "Delete this conversation? This will permanently remove all messages for everyone."
-        );
-
-        if (!shouldDelete) {
-            return;
-        }
-
         try {
             await deleteConversationMutation.mutateAsync(conversationId);
             setIsMenuOpen(false);
+            setIsDeleteConversationOpen(false);
             toast.success("Conversation deleted");
             onConversationDeleted?.(conversationId);
         } catch (error) {
@@ -287,13 +283,14 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
                                 <div className="theme-border absolute right-0 top-10 z-20 min-w-[220px] rounded-xl border bg-[var(--surface)] p-1 shadow-xl">
                                     <button
                                         type="button"
-                                        onClick={handleDeleteConversation}
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            setIsDeleteConversationOpen(true);
+                                        }}
                                         disabled={deleteConversationMutation.isPending}
                                         className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
-                                        {deleteConversationMutation.isPending
-                                            ? "Deleting conversation..."
-                                            : "Delete conversation"}
+                                        Delete conversation
                                     </button>
                                 </div>
                             ) : null}
@@ -325,6 +322,15 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
                 isOpen={!isGroupConversation && isProfilePanelOpen}
                 onClose={() => setIsProfilePanelOpen(false)}
                 contact={activeConversation}
+            />
+
+            <DeleteConfirmModal
+                isOpen={isDeleteConversationOpen}
+                title="Delete conversation?"
+                description="This will permanently remove this conversation and all its messages for everyone."
+                isLoading={deleteConversationMutation.isPending}
+                onCancel={() => setIsDeleteConversationOpen(false)}
+                onConfirm={handleDeleteConversation}
             />
         </section>
     );

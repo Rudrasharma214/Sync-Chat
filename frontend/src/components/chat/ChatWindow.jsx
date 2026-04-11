@@ -23,9 +23,11 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
     const [isGroupPanelOpen, setIsGroupPanelOpen] = useState(false);
     const [isProfilePanelOpen, setIsProfilePanelOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isDeleteConversationOpen, setIsDeleteConversationOpen] = useState(false);
     const typingTimeoutRef = useRef(null);
     const menuContainerRef = useRef(null);
+    const mobileMenuRef = useRef(null);
 
     const updateMessageMutation = useUpdateMessage();
     const deleteMessageMutation = useDeleteMessage();
@@ -66,6 +68,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
         setIsGroupPanelOpen(false);
         setIsProfilePanelOpen(false);
         setIsMenuOpen(false);
+        setIsMobileMenuOpen(false);
         setIsDeleteConversationOpen(false);
     }, [conversationId]);
 
@@ -77,6 +80,10 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
         const handleOutsideClick = (event) => {
             if (menuContainerRef.current && !menuContainerRef.current.contains(event.target)) {
                 setIsMenuOpen(false);
+            }
+
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+                setIsMobileMenuOpen(false);
             }
         };
 
@@ -137,6 +144,16 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
         if (!isGroupConversation) {
             setIsProfilePanelOpen(true);
         }
+    };
+
+    const handleCallPlaceholder = () => {
+        setIsMobileMenuOpen(false);
+        toast("Voice call will be available soon");
+    };
+
+    const handleVideoPlaceholder = () => {
+        setIsMobileMenuOpen(false);
+        toast("Video call will be available soon");
     };
 
     const handleDeleteConversation = async () => {
@@ -238,6 +255,74 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
                         </div>
                     ) : null}
 
+                    <div className="relative sm:hidden" ref={mobileMenuRef}>
+                        <button
+                            type="button"
+                            className="inline-flex"
+                            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                            aria-label="More options"
+                            title="More options"
+                        >
+                            <span className={iconBtnClass}>
+                                <MoreVertical className="h-4 w-4" />
+                            </span>
+                        </button>
+
+                        {isMobileMenuOpen ? (
+                            <div className="theme-border absolute right-0 top-10 z-30 min-w-[190px] rounded-xl border bg-[var(--surface)] p-1 shadow-xl">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsMobileMenuOpen(false);
+                                        handleToggleSearch();
+                                    }}
+                                    className="theme-text block w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-amber-500/10"
+                                >
+                                    Search in chat
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleCallPlaceholder}
+                                    className="theme-text block w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-amber-500/10"
+                                >
+                                    Voice call
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleVideoPlaceholder}
+                                    className="theme-text block w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-amber-500/10"
+                                >
+                                    Video call
+                                </button>
+
+                                {isGroupConversation ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            setIsGroupPanelOpen(true);
+                                        }}
+                                        className="theme-text block w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-amber-500/10"
+                                    >
+                                        Group details
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            setIsDeleteConversationOpen(true);
+                                        }}
+                                        disabled={deleteConversationMutation.isPending}
+                                        className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        Delete conversation
+                                    </button>
+                                )}
+                            </div>
+                        ) : null}
+                    </div>
+
                     <button type="button" className="hidden sm:inline-flex" onClick={handleToggleSearch} aria-label="Search in chat" title="Search in chat">
                         <span className={iconBtnClass}>
                             <Search className="h-4 w-4" />
@@ -256,7 +341,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
                     {isGroupConversation ? (
                         <button
                             type="button"
-                            className="inline-flex"
+                            className="hidden sm:inline-flex"
                             onClick={() => setIsGroupPanelOpen(true)}
                             aria-label="Group details"
                             title="Group details"
@@ -266,7 +351,7 @@ const ChatWindow = ({ socket, conversationId, activeConversation, onBack, onConv
                             </span>
                         </button>
                     ) : (
-                        <div className="relative" ref={menuContainerRef}>
+                        <div className="relative hidden sm:block" ref={menuContainerRef}>
                             <button
                                 type="button"
                                 className="inline-flex"

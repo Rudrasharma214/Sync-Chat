@@ -50,6 +50,35 @@ export const getUnreadStatusesByUserId = async (userId, limit = 20) => {
         });
 };
 
+export const getUnreadCountsByConversation = async (userId) => {
+    return await MessageStatus.aggregate([
+        {
+            $match: {
+                userId,
+                status: "unread",
+                deletedForMe: { $ne: true },
+            },
+        },
+        {
+            $lookup: {
+                from: "messages",
+                localField: "messageId",
+                foreignField: "_id",
+                as: "message",
+            },
+        },
+        {
+            $unwind: "$message",
+        },
+        {
+            $group: {
+                _id: "$message.conversationId",
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+};
+
 export const updateMessageStatus = async (id, updateData) => {
     return await MessageStatus.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
 };

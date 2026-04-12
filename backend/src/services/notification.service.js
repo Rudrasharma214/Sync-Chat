@@ -203,6 +203,17 @@ export const getUnreadSummary = async (userId, limit = 20) => {
     try {
         const unreadCount = await messageStatusRepo.getUnreadCountByUserId(userId);
         const unreadStatuses = await messageStatusRepo.getUnreadStatusesByUserId(userId, limit);
+        const groupedUnread = await messageStatusRepo.getUnreadCountsByConversation(userId);
+
+        const unreadByConversation = groupedUnread.reduce((acc, item) => {
+            const conversationId = item?._id ? String(item._id) : "";
+            if (!conversationId) {
+                return acc;
+            }
+
+            acc[conversationId] = Number(item?.count || 0);
+            return acc;
+        }, {});
 
         const latest = unreadStatuses
             .filter((status) => status.messageId)
@@ -223,6 +234,7 @@ export const getUnreadSummary = async (userId, limit = 20) => {
             message: "Unread summary fetched successfully",
             data: {
                 unreadCount,
+                unreadByConversation,
                 latest,
             },
         };

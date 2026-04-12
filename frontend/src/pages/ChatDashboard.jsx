@@ -101,7 +101,7 @@ const ChatDashboard = () => {
   });
 
   const { data: unreadSummary } = useUnreadSummary(5);
-  const unreadCount = Number(unreadSummary?.unreadCount || 0);
+  const unreadByConversation = unreadSummary?.unreadByConversation || {};
 
   useEffect(() => {
     if (!socket) {
@@ -135,14 +135,16 @@ const ChatDashboard = () => {
       return flattenedConversations.map((conversation) => {
         const mappedConversation = mapConversationListItem(conversation);
         const participantId = mappedConversation.participantId;
+        const conversationUnread = Number(unreadByConversation[String(mappedConversation.id)] || 0);
 
         return {
           ...mappedConversation,
+          unread: conversationUnread,
           online: Boolean(participantId && onlineUserIds.has(String(participantId))),
         };
       });
     },
-    [conversationsData, onlineUserIds]
+    [conversationsData, onlineUserIds, unreadByConversation]
   );
 
   useEffect(() => {
@@ -288,7 +290,6 @@ const ChatDashboard = () => {
               isUserSearchLoading={isUserSearchLoading}
               onSelectUser={handleSelectUser}
               onOpenCreateGroup={() => setIsCreateGroupOpen(true)}
-              unreadCount={unreadCount}
               isLoading={isConversationsLoading}
               isError={isConversationsError}
               errorMessage={conversationsError?.message}

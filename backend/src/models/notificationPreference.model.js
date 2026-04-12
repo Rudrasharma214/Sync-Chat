@@ -10,7 +10,7 @@ const notificationPreferenceSchema = new mongoose.Schema(
         },
         notificationsEnabled: {
             type: Boolean,
-            default: true,
+            default: false,
         },
         subscriptions: [
             {

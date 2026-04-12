@@ -56,7 +56,11 @@ const Settings = () => {
   const updateNotificationPreferencesMutation = useUpdateNotificationPreferences();
   const changePasswordMutation = useChangePassword();
 
-  const notificationsEnabled = notificationPreferences?.notificationsEnabled ?? true;
+  const savedSubscriptions = Array.isArray(notificationPreferences?.subscriptions)
+    ? notificationPreferences.subscriptions
+    : [];
+  const notificationsEnabled =
+    (notificationPreferences?.notificationsEnabled ?? false) && savedSubscriptions.length > 0;
 
   const handleToggleNotifications = async () => {
     const nextEnabled = !notificationsEnabled;

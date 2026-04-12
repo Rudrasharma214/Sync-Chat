@@ -85,7 +85,7 @@ const normalizePreference = (preference, userId) => {
 
     return {
         userId,
-        notificationsEnabled: true,
+        notificationsEnabled: false,
         subscriptions: [],
     };
 };

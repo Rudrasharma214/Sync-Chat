@@ -12,9 +12,10 @@ self.addEventListener("push", (event) => {
     payload = { title: "Sync Chat", body: event.data.text() };
   }
 
-  const title = payload.title || "Sync Chat";
+  const senderName = typeof payload.sender === "string" ? payload.sender.trim() : "";
+  const title = senderName || payload.title || "Sync Chat";
   const options = {
-    body: payload.body || "You have a new message.",
+    body: payload.body || (senderName ? "Sent you a message" : "You have a new message."),
     icon: "/avatar.png",
     badge: "/avatar.png",
     data: payload.data || {},

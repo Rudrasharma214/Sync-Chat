@@ -6,6 +6,7 @@ import * as messageStatusRepo from "../repositories/messageStatus.repositories.j
 import * as notificationService from "./notification.service.js";
 import { sendBrowserPush } from "../config/push.js";
 import { emitToConversation, emitToUser } from "../config/socket.js";
+import logger from "../config/logger.js";
 
 const UPDATE_WINDOW_MS = 2 * 60 * 60 * 1000;
 const DELETE_EVERYONE_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -33,7 +34,7 @@ const sendPushToRecipients = async (recipientIds, message, senderName) => {
                 }
 
                 const payload = {
-                    title: "New Message",
+                    title: senderName || "New Message",
                     body: message?.text || "You have a new message",
                     sender: senderName,
                     data: {
@@ -47,6 +48,14 @@ const sendPushToRecipients = async (recipientIds, message, senderName) => {
                     subscriptions.map(async (subscription) => {
                         const result = await sendBrowserPush(subscription, payload);
 
+                        if (!result.success) {
+                            logger.warn("Push delivery failed", {
+                                recipientId: String(recipientId),
+                                reason: result.reason,
+                                statusCode: result.statusCode,
+                            });
+                        }
+
                         if (
                             !result.success
                             && [404, 410].includes(Number(result.statusCode))
@@ -58,8 +67,12 @@ const sendPushToRecipients = async (recipientIds, message, senderName) => {
                         }
                     })
                 );
-            } catch {
+            } catch (error) {
                 // Ignore push failures so message sending never crashes.
+                logger.warn("Push notification flow failed", {
+                    recipientId: String(recipientId),
+                    error: error?.message,
+                });
             }
         })
     );

@@ -180,6 +180,7 @@ const Settings = () => {
                 isPreferencesError={isPreferencesError}
                 isPending={updateNotificationPreferencesMutation.isPending}
                 onToggleNotifications={handleToggleNotifications}
+                subscriptions={notificationPreferences?.subscriptions}
               />
             ) : activeSection === "profile" ? (
               <SettingsProfile

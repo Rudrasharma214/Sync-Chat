@@ -1,6 +1,7 @@
 import { STATUS } from "../constant/statusCodes.js";
 import * as notificationPreferenceRepo from "../repositories/notificationPreference.repositories.js";
 import * as messageStatusRepo from "../repositories/messageStatus.repositories.js";
+import logger from "../config/logger.js";
 
 const normalizeSubscription = (subscription) => {
     if (!subscription || typeof subscription !== "object") {
@@ -97,6 +98,15 @@ export const getNotificationPreferenceByUserId = async (userId) => {
 export const getPreferences = async (userId) => {
     try {
         const preference = await notificationPreferenceRepo.getNotificationPreferenceByUserId(userId);
+        const subscriptionCount = Array.isArray(preference?.subscriptions)
+            ? preference.subscriptions.length
+            : 0;
+
+        logger.info("Notification preferences retrieved", {
+            userId: String(userId),
+            subscriptionCount,
+            notificationsEnabled: preference?.notificationsEnabled,
+        });
 
         return {
             success: true,
@@ -104,6 +114,10 @@ export const getPreferences = async (userId) => {
             data: normalizePreference(preference, userId),
         };
     } catch (error) {
+        logger.error("Error getting notification preferences", {
+            userId: String(userId),
+            error: error.message,
+        });
         return {
             success: false,
             statusCode: STATUS.INTERNAL_ERROR,
@@ -126,19 +140,43 @@ export const updatePreferences = async (userId, payload) => {
         }
 
         const subscriptions = collectSubscriptions(payload);
+        const beforePreference = await notificationPreferenceRepo.getNotificationPreferenceByUserId(userId);
+        const beforeSubscriptionCount = Array.isArray(beforePreference?.subscriptions)
+            ? beforePreference.subscriptions.length
+            : 0;
 
         let preference = await notificationPreferenceRepo.upsertNotificationPreference(userId, updateData);
 
         for (const subscription of subscriptions) {
+            logger.info("Adding subscription for user", {
+                userId: String(userId),
+                endpoint: subscription?.endpoint?.substring(0, 50) + "...",
+            });
             preference = await notificationPreferenceRepo.addSubscription(userId, subscription);
         }
 
         if (payload?.removeSubscriptionEndpoint) {
+            logger.info("Removing subscription for user", {
+                userId: String(userId),
+                endpoint: String(payload.removeSubscriptionEndpoint).substring(0, 50) + "...",
+            });
             preference = await notificationPreferenceRepo.removeSubscriptionByEndpoint(
                 userId,
                 String(payload.removeSubscriptionEndpoint)
             );
         }
+
+        const afterSubscriptionCount = Array.isArray(preference?.subscriptions)
+            ? preference.subscriptions.length
+            : 0;
+
+        logger.info("Notification preferences updated", {
+            userId: String(userId),
+            subscriptionsBefore: beforeSubscriptionCount,
+            subscriptionsAfter: afterSubscriptionCount,
+            subscriptionsAdded: subscriptions.length,
+            notificationsEnabled: preference?.notificationsEnabled,
+        });
 
         return {
             success: true,
@@ -146,6 +184,10 @@ export const updatePreferences = async (userId, payload) => {
             data: normalizePreference(preference, userId),
         };
     } catch (error) {
+        logger.error("Error updating notification preferences", {
+            userId: String(userId),
+            error: error.message,
+        });
         return {
             success: false,
             statusCode: STATUS.INTERNAL_ERROR,

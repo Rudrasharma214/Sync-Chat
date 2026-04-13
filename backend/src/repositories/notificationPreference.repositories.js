@@ -1,4 +1,5 @@
 import NotificationPreference from '../models/notificationPreference.model.js';
+import logger from '../config/logger.js';
 
 export const createNotificationPreference = async (data) => {
     const notificationPreference = new NotificationPreference(data);
@@ -38,7 +39,20 @@ export const deleteNotificationPreference = async (userId) => {
 };
 
 export const addSubscription = async (userId, subscription) => {
-    return await NotificationPreference.findOneAndUpdate(
+    const existingPreference = await NotificationPreference.findOne({ userId });
+    const alreadyExists = existingPreference?.subscriptions?.some(
+        (sub) => sub.endpoint === subscription.endpoint
+    );
+
+    if (alreadyExists) {
+        logger.info("Subscription already exists for user, skipping", {
+            userId: String(userId),
+            endpoint: subscription?.endpoint?.substring(0, 50) + "...",
+        });
+        return existingPreference;
+    }
+
+    const result = await NotificationPreference.findOneAndUpdate(
         {
             userId,
             "subscriptions.endpoint": { $ne: subscription.endpoint },
@@ -51,12 +65,28 @@ export const addSubscription = async (userId, subscription) => {
             upsert: true,
         }
     );
+
+    logger.info("Subscription added for user", {
+        userId: String(userId),
+        endpoint: subscription?.endpoint?.substring(0, 50) + "...",
+        totalSubscriptions: result?.subscriptions?.length || 0,
+    });
+
+    return result;
 };
 
 export const removeSubscriptionByEndpoint = async (userId, endpoint) => {
-    return await NotificationPreference.findOneAndUpdate(
+    const result = await NotificationPreference.findOneAndUpdate(
         { userId },
         { $pull: { subscriptions: { endpoint } } },
         { returnDocument: "after" }
     );
+
+    logger.info("Subscription removed for user", {
+        userId: String(userId),
+        endpoint: endpoint.substring(0, 50) + "...",
+        remainingSubscriptions: result?.subscriptions?.length || 0,
+    });
+
+    return result;
 };

@@ -30,6 +30,11 @@ const sendPushToRecipients = async (recipientIds, message, senderName) => {
                     : [];
 
                 if (!notificationsEnabled || !subscriptions.length) {
+                    logger.info("User has no active notification subscriptions", {
+                        recipientId: String(recipientId),
+                        subscriptionCount: subscriptions.length,
+                        notificationsEnabled,
+                    });
                     return;
                 }
 
@@ -44,32 +49,52 @@ const sendPushToRecipients = async (recipientIds, message, senderName) => {
                     },
                 };
 
-                await Promise.all(
+                const pushResults = await Promise.allSettled(
                     subscriptions.map(async (subscription) => {
                         const result = await sendBrowserPush(subscription, payload);
 
                         if (!result.success) {
                             logger.warn("Push delivery failed", {
                                 recipientId: String(recipientId),
+                                endpoint: subscription?.endpoint?.substring(0, 50),
                                 reason: result.reason,
                                 statusCode: result.statusCode,
                             });
-                        }
 
-                        if (
-                            !result.success
-                            && [404, 410].includes(Number(result.statusCode))
-                            && subscription?.endpoint
-                        ) {
-                            await notificationService.updatePreferences(recipientId, {
-                                removeSubscriptionEndpoint: subscription.endpoint,
+                            if (
+                                !result.success
+                                && [404, 410].includes(Number(result.statusCode))
+                                && subscription?.endpoint
+                            ) {
+                                // Subscription is invalid, remove it
+                                await notificationService.updatePreferences(recipientId, {
+                                    removeSubscriptionEndpoint: subscription.endpoint,
+                                });
+                                logger.info("Removed invalid subscription endpoint", {
+                                    recipientId: String(recipientId),
+                                    endpoint: subscription?.endpoint?.substring(0, 50),
+                                });
+                            }
+                        } else {
+                            logger.info("Push notification sent successfully", {
+                                recipientId: String(recipientId),
+                                endpoint: subscription?.endpoint?.substring(0, 50),
                             });
                         }
+
+                        return result;
                     })
                 );
+
+                const successCount = pushResults.filter((r) => r.status === "fulfilled" && r.value?.success).length;
+                logger.info("Push notification batch completed", {
+                    recipientId: String(recipientId),
+                    totalSubscriptions: subscriptions.length,
+                    successCount,
+                    failureCount: subscriptions.length - successCount,
+                });
             } catch (error) {
-                // Ignore push failures so message sending never crashes.
-                logger.warn("Push notification flow failed", {
+                logger.error("Push notification flow failed", {
                     recipientId: String(recipientId),
                     error: error?.message,
                 });

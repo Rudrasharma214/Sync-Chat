@@ -23,6 +23,25 @@ export const getNotificationPermission = () => {
   return Notification.permission;
 };
 
+export const requestNotificationPermission = async () => {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    throw new Error("Notifications are not supported in this browser.");
+  }
+
+  // This must be called in response to user interaction (click, etc.)
+  const permission = await Notification.requestPermission();
+
+  if (permission === "denied") {
+    throw new Error("Notification permission was denied.");
+  }
+
+  if (permission !== "granted") {
+    throw new Error("Notification permission was not granted. Please enable in browser settings.");
+  }
+
+  return permission;
+};
+
 export const subscribeBrowserPush = async () => {
   if (!isPushSupported()) {
     throw new Error("Push notifications are not supported in this browser.");
@@ -33,9 +52,10 @@ export const subscribeBrowserPush = async () => {
     throw new Error("VITE_VAPID_PUBLIC_KEY is missing in frontend environment.");
   }
 
-  const permission = await Notification.requestPermission();
+  // Check current permission state - assume permission is already granted
+  const permission = getNotificationPermission();
   if (permission !== "granted") {
-    throw new Error("Notification permission was not granted.");
+    throw new Error("Notification permission is not granted. Please request permission first.");
   }
 
   await navigator.serviceWorker.register("/sw.js");
@@ -56,6 +76,20 @@ export const subscribeBrowserPush = async () => {
 
 export const subscribeUser = async () => {
   return subscribeBrowserPush();
+};
+
+export const requestPermissionAndSubscribe = async () => {
+  if (!isPushSupported()) {
+    throw new Error("Push notifications are not supported in this browser.");
+  }
+
+  // Step 1: Request permission (must be called in response to user interaction)
+  await requestNotificationPermission();
+
+  // Step 2: Subscribe to push notifications
+  const subscription = await subscribeBrowserPush();
+
+  return subscription;
 };
 
 export const getCurrentSubscription = async () => {

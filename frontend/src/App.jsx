@@ -49,92 +49,54 @@ const AppContent = () => {
 
         // If permission is denied, skip
         if (permission === "denied") {
-          logger.info("Notification permission denied, skipping subscription", null, "App");
+          logger.info("Notification permission denied, skipping subscription verification", null, "App");
           return;
         }
 
-        // Get current subscriptions for this device
-        // Check if this specific device is already subscribed
+        // If permission is not granted yet (still 'default'), don't request it automatically
+        // User must click "Enable Notifications" button in settings
+        if (permission !== "granted") {
+          logger.info("Notification permission not yet granted - user must enable in settings", null, "App");
+          return;
+        }
+
+        // Permission is granted - verify subscription on this device
         const currentSubscription = await BrowserPushService.getCurrentSubscription();
-        if (currentSubscription) {
-          // Already subscribed on this device, verify it's in backend
-          const preferencesResult = await notificationService.getNotificationPreferences();
-          if (preferencesResult.success) {
-            const preferences = preferencesResult.data || {};
-            const subscriptions = Array.isArray(preferences.subscriptions)
-              ? preferences.subscriptions
-              : [];
-
-            const currentEndpoint = currentSubscription.endpoint;
-            const isAlreadyStored = subscriptions.some(
-              (sub) => sub.endpoint === currentEndpoint
-            );
-
-            if (isAlreadyStored) {
-              logger.info("Device already subscribed to notifications", { endpoint: currentEndpoint }, "App");
-              return;
-            }
-
-            // Device has subscription but not stored in backend, so add it
-            const updateResult = await notificationService.updateNotificationPreferences({
-              notificationsEnabled: true,
-              subscription: currentSubscription.toJSON(),
-            });
-
-            if (!updateResult.success) {
-              logger.warn("Failed to update existing subscription", updateResult.message, "App");
-              return;
-            }
-
-            logger.info("Added existing device subscription to backend", null, "App");
-            return;
-          }
-        }
-
-        // No subscription on this device yet, create new one
-        if (permission === "granted") {
-          // Already granted, just subscribe
-          const subscription = await subscribeUser();
-          const updateResult = await notificationService.updateNotificationPreferences({
-            notificationsEnabled: true,
-            subscription,
-          });
-
-          if (!updateResult.success) {
-            logger.warn("Failed to store new subscription", updateResult.message, "App");
-            return;
-          }
-
-          logger.info("Successfully subscribed device to notifications", { endpoint: subscription.endpoint }, "App");
+        if (!currentSubscription) {
+          // Permission is granted but no subscription - this shouldn't happen normally
+          logger.info("Permission granted but no subscription found on device", null, "App");
           return;
         }
 
-        // Permission is 'default' - need to ask user
-        // Use a flag to track per-browser (not per-user)
-        const browserPromptedKey = "notifications-browser-prompted";
-        const browserPrompted = localStorage.getItem(browserPromptedKey) === "1";
-
-        if (browserPrompted) {
-          logger.info("User already declined notifications on this browser", null, "App");
+        // Verify it's stored in backend
+        const preferencesResult = await notificationService.getNotificationPreferences();
+        if (!preferencesResult.success) {
+          logger.warn("Failed to fetch notification preferences", preferencesResult.message, "App");
           return;
         }
 
-        // Mark that we've prompted on this browser
-        localStorage.setItem(browserPromptedKey, "1");
+        const preferences = preferencesResult.data || {};
+        const subscriptions = Array.isArray(preferences.subscriptions) ? preferences.subscriptions : [];
+        const currentEndpoint = currentSubscription.endpoint;
+        const isAlreadyStored = subscriptions.some((sub) => sub.endpoint === currentEndpoint);
 
-        // Request permission from user
-        const subscription = await subscribeUser();
+        if (isAlreadyStored) {
+          logger.info("Device already subscribed to notifications", { endpoint: currentEndpoint }, "App");
+          return;
+        }
+
+        // Device has subscription but not stored in backend, so add it
         const updateResult = await notificationService.updateNotificationPreferences({
           notificationsEnabled: true,
-          subscription,
+          subscription: currentSubscription.toJSON(),
         });
 
         if (!updateResult.success) {
-          logger.warn("Failed to store new subscription after user granted", updateResult.message, "App");
+          logger.warn("Failed to update existing subscription", updateResult.message, "App");
           return;
         }
 
-        logger.info("Successfully subscribed new device after user permission", { endpoint: subscription.endpoint }, "App");
+        logger.info("Added existing device subscription to backend", null, "App");
       } catch (error) {
         logger.warn("Notification subscription bootstrap failed", error, "App");
       }

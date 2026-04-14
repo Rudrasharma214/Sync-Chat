@@ -11,6 +11,7 @@ import {
   getNotificationPermission,
   isPushSupported,
   subscribeUser,
+  requestPermissionAndSubscribe,
   unsubscribeUser,
 } from "../services/BrowserPushService";
 import SettingsAppearance from "../components/settings/SettingsAppearance";
@@ -41,6 +42,7 @@ const Settings = () => {
   const { authUser } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const [activeSection, setActiveSection] = useState("notifications");
+  const [isEnablingNotifications, setIsEnablingNotifications] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -99,6 +101,39 @@ const Settings = () => {
       toast.success("Notifications disabled");
     } catch (error) {
       toast.error(error.message || "Failed to update notifications");
+    }
+  };
+
+  const handleEnableNotifications = async () => {
+    if (!isPushSupported()) {
+      toast.error("Push notifications are not supported in this browser.");
+      return;
+    }
+
+    setIsEnablingNotifications(true);
+
+    try {
+      // This will request permission in response to user interaction
+      // and then subscribe
+      const subscription = await requestPermissionAndSubscribe();
+
+      await updateNotificationPreferencesMutation.mutateAsync({
+        notificationsEnabled: true,
+        subscription,
+      });
+
+      toast.success("Notifications enabled for this device!");
+    } catch (error) {
+      // Handle specific errors
+      if (error.message.includes("denied")) {
+        toast.error("Notification permission was denied. You can enable it in browser settings.");
+      } else if (error.message.includes("unsupported")) {
+        toast.error("Notifications are not supported on this device.");
+      } else {
+        toast.error(error.message || "Failed to enable notifications");
+      }
+    } finally {
+      setIsEnablingNotifications(false);
     }
   };
 
@@ -180,6 +215,8 @@ const Settings = () => {
                 isPreferencesError={isPreferencesError}
                 isPending={updateNotificationPreferencesMutation.isPending}
                 onToggleNotifications={handleToggleNotifications}
+                onEnableNotifications={handleEnableNotifications}
+                isEnablingNotifications={isEnablingNotifications}
                 subscriptions={notificationPreferences?.subscriptions}
               />
             ) : activeSection === "profile" ? (

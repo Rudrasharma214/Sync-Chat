@@ -17,7 +17,8 @@ import ProtectedRoute from "./ProtectedRoutes";
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Welcome />} />
+      <Route path="/" element={<Navigate to="/welcome" replace />} />
+      <Route path="/welcome" element={<Welcome />} />
 
       {/* Public Routes - Only accessible when not authenticated */}
       <Route
@@ -66,7 +67,7 @@ const AppRoutes = () => {
       />
 
       {/* Catch-all - Redirect to welcome */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/welcome" replace />} />
     </Routes>
   );
 };

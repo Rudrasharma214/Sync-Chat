@@ -322,19 +322,19 @@ const Welcome = () => {
                   const MomentIcon = momentIcons[moment.title] || MessageSquareText;
 
                   return (
-                <article
-                  key={moment.title}
-                  data-reveal
-                  className={`reveal-on-scroll rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${moment.accent} p-5 shadow-sm`}
-                  style={{ transitionDelay: `${index * 110}ms` }}
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/60 text-slate-900 shadow-sm">
-                    <MomentIcon className="h-5 w-5" />
-                  </div>
+                    <article
+                      key={moment.title}
+                      data-reveal
+                      className={`reveal-on-scroll rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${moment.accent} p-5 shadow-sm`}
+                      style={{ transitionDelay: `${index * 110}ms` }}
+                    >
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/60 text-slate-900 shadow-sm">
+                        <MomentIcon className="h-5 w-5" />
+                      </div>
 
-                  <h3 className="theme-text mt-4 text-base font-semibold">{moment.title}</h3>
-                  <p className="theme-muted mt-2 text-sm leading-6">{moment.description}</p>
-                </article>
+                      <h3 className="theme-text mt-4 text-base font-semibold">{moment.title}</h3>
+                      <p className="theme-muted mt-2 text-sm leading-6">{moment.description}</p>
+                    </article>
                   );
                 })()
               ))}

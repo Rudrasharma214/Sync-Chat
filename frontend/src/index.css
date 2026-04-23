@@ -84,6 +84,7 @@ body {
 }
 
 @keyframes float-slow {
+
   0%,
   100% {
     transform: translateY(0) scale(1);
@@ -95,6 +96,7 @@ body {
 }
 
 @keyframes soft-pulse {
+
   0%,
   100% {
     box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.18);
@@ -131,4 +133,37 @@ body {
 
 .animate-slide-in {
   animation: slide-in 700ms ease both;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(8px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms ease,
+    filter 700ms ease;
+  will-change: opacity, transform, filter;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .reveal-on-scroll,
+  .reveal-on-scroll.is-visible,
+  .animate-fade-up,
+  .animate-float-slow,
+  .animate-soft-pulse,
+  .animate-slide-in {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+  }
 }

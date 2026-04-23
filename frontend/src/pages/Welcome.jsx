@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -8,11 +8,17 @@ import {
   MessageSquareText,
   Rocket,
   ShieldCheck,
-  Sparkles,
   Star,
   Users,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+
+const momentIcons = {
+  "Personal chats": MessageSquareText,
+  "Group spaces": Users,
+  "Calm notifications": Globe2,
+  "Fast replies": CheckCircle2,
+};
 
 const moments = [
   {
@@ -80,6 +86,29 @@ const stats = [
 ];
 
 const Welcome = () => {
+  useEffect(() => {
+    const revealTargets = document.querySelectorAll("[data-reveal]");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.18,
+        rootMargin: "0px 0px -8% 0px",
+      }
+    );
+
+    revealTargets.forEach((target) => observer.observe(target));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -99,22 +128,22 @@ const Welcome = () => {
 
         <section className="relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 pb-14 pt-12 sm:px-8 sm:pb-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-12 lg:pb-20 lg:pt-20">
           <div className="flex flex-col justify-center">
-            <div className="animate-fade-up theme-border theme-surface theme-muted inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm backdrop-blur">
-              <Sparkles className="h-4 w-4 text-amber-500" />
+            <div data-reveal className="reveal-on-scroll theme-border theme-surface theme-muted inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm backdrop-blur">
+              <MessageSquareText className="h-4 w-4 text-amber-500" />
               A chat app for work, friends, and family
             </div>
 
-            <h1 className="animate-fade-up theme-text mt-6 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl" style={{ animationDelay: "120ms" }}>
+            <h1 data-reveal className="reveal-on-scroll theme-text mt-6 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl" style={{ transitionDelay: "120ms" }}>
               A polished chat experience that feels warm, fast, and natural for everyday life.
             </h1>
 
-            <p className="animate-fade-up theme-muted mt-5 max-w-2xl text-base leading-7 sm:text-lg" style={{ animationDelay: "240ms" }}>
+            <p data-reveal className="reveal-on-scroll theme-muted mt-5 max-w-2xl text-base leading-7 sm:text-lg" style={{ transitionDelay: "240ms" }}>
               Sync-Chat keeps your conversations organized across direct messages and groups, with
               a calm interface that works just as well for quick personal check-ins as it does for
               focused collaboration.
             </p>
 
-            <div className="animate-fade-up mt-8 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ animationDelay: "360ms" }}>
+            <div data-reveal className="reveal-on-scroll mt-8 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ transitionDelay: "360ms" }}>
               <Link
                 to="/signup"
                 className="animate-soft-pulse inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-6 py-3.5 text-sm font-semibold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400"
@@ -133,14 +162,19 @@ const Welcome = () => {
 
             <div className="mt-10 grid gap-3 sm:grid-cols-3">
               {stats.map((item) => (
-                <div key={item.label} className="animate-slide-in theme-border theme-surface rounded-2xl border p-4 shadow-sm backdrop-blur" style={{ animationDelay: `${stats.indexOf(item) * 120 + 120}ms` }}>
+                <div
+                  key={item.label}
+                  data-reveal
+                  className="reveal-on-scroll theme-border theme-surface rounded-2xl border p-4 shadow-sm backdrop-blur"
+                  style={{ transitionDelay: `${stats.indexOf(item) * 120 + 120}ms` }}
+                >
                   <div className="theme-text text-2xl font-semibold">{item.value}</div>
                   <div className="theme-muted mt-1 text-sm">{item.label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3 text-sm theme-muted">
+            <div data-reveal className="reveal-on-scroll mt-8 flex flex-wrap items-center gap-3 text-sm theme-muted" style={{ transitionDelay: "480ms" }}>
               <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-emerald-600">
                 <CheckCircle2 className="h-4 w-4" />
                 Private and secure
@@ -157,7 +191,7 @@ const Welcome = () => {
           </div>
 
           <div className="relative flex items-center justify-center lg:justify-end">
-            <div className="animate-fade-up theme-border theme-surface relative w-full max-w-xl rounded-[2rem] border p-4 shadow-2xl shadow-slate-950/10 backdrop-blur" style={{ animationDelay: "180ms" }}>
+            <div data-reveal className="reveal-on-scroll theme-border theme-surface relative w-full max-w-xl rounded-[2rem] border p-4 shadow-2xl shadow-slate-950/10 backdrop-blur" style={{ transitionDelay: "180ms" }}>
               <div className="theme-border flex items-center justify-between border-b pb-4">
                 <div>
                   <p className="theme-text text-sm font-semibold tracking-wide">Your chats</p>
@@ -251,7 +285,12 @@ const Welcome = () => {
               const Icon = item.icon;
 
               return (
-                <article key={item.title} className="animate-fade-up theme-border theme-surface rounded-[1.5rem] border p-6 shadow-sm backdrop-blur" style={{ animationDelay: `${highlights.indexOf(item) * 120}ms` }}>
+                <article
+                  key={item.title}
+                  data-reveal
+                  className="reveal-on-scroll theme-border theme-surface rounded-[1.5rem] border p-6 shadow-sm backdrop-blur"
+                  style={{ transitionDelay: `${highlights.indexOf(item) * 120}ms` }}
+                >
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
                     <Icon className="h-5 w-5" />
                   </div>
@@ -265,7 +304,7 @@ const Welcome = () => {
         </section>
 
         <section className="relative mx-auto max-w-7xl px-6 pb-16 sm:px-8 lg:px-12 lg:pb-24">
-          <div className="theme-border theme-surface rounded-[2rem] border p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10">
+          <div data-reveal className="reveal-on-scroll theme-border theme-surface rounded-[2rem] border p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.22em] theme-muted">Why people keep it open</p>
@@ -279,18 +318,25 @@ const Welcome = () => {
 
             <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {moments.map((moment, index) => (
+                (() => {
+                  const MomentIcon = momentIcons[moment.title] || MessageSquareText;
+
+                  return (
                 <article
                   key={moment.title}
-                  className={`animate-fade-up rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${moment.accent} p-5 shadow-sm`}
-                  style={{ animationDelay: `${index * 110}ms` }}
+                  data-reveal
+                  className={`reveal-on-scroll rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${moment.accent} p-5 shadow-sm`}
+                  style={{ transitionDelay: `${index * 110}ms` }}
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/60 text-slate-900 shadow-sm">
-                    <Sparkles className="h-5 w-5" />
+                    <MomentIcon className="h-5 w-5" />
                   </div>
 
                   <h3 className="theme-text mt-4 text-base font-semibold">{moment.title}</h3>
                   <p className="theme-muted mt-2 text-sm leading-6">{moment.description}</p>
                 </article>
+                  );
+                })()
               ))}
             </div>
           </div>
@@ -298,7 +344,7 @@ const Welcome = () => {
 
         <section className="relative mx-auto max-w-7xl px-6 pb-24 sm:px-8 lg:px-12 lg:pb-28">
           <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="theme-border theme-surface rounded-[2rem] border p-6 shadow-sm backdrop-blur sm:p-8">
+            <div data-reveal className="reveal-on-scroll theme-border theme-surface rounded-[2rem] border p-6 shadow-sm backdrop-blur sm:p-8">
               <p className="text-sm font-semibold uppercase tracking-[0.22em] theme-muted">Everyday moments</p>
               <h2 className="theme-text mt-3 text-2xl font-semibold sm:text-3xl">Made for the chats people actually have.</h2>
               <p className="theme-muted mt-4 text-sm leading-7">
@@ -311,7 +357,12 @@ const Welcome = () => {
                   "Keep family threads separate from work chats.",
                   "Move smoothly between direct messages and groups.",
                 ].map((line, index) => (
-                  <div key={line} className="animate-slide-in theme-surface-soft flex items-center gap-3 rounded-2xl px-4 py-3" style={{ animationDelay: `${index * 90}ms` }}>
+                  <div
+                    key={line}
+                    data-reveal
+                    className="reveal-on-scroll theme-surface-soft flex items-center gap-3 rounded-2xl px-4 py-3"
+                    style={{ transitionDelay: `${index * 90}ms` }}
+                  >
                     <CheckCircle2 className="h-5 w-5 text-amber-500" />
                     <p className="theme-text text-sm">{line}</p>
                   </div>
@@ -323,8 +374,9 @@ const Welcome = () => {
               {testimonials.map((testimonial, index) => (
                 <article
                   key={testimonial.name}
-                  className="animate-fade-up theme-border theme-surface rounded-[1.5rem] border p-5 shadow-sm backdrop-blur"
-                  style={{ animationDelay: `${index * 110}ms` }}
+                  data-reveal
+                  className="reveal-on-scroll theme-border theme-surface rounded-[1.5rem] border p-5 shadow-sm backdrop-blur"
+                  style={{ transitionDelay: `${index * 110}ms` }}
                 >
                   <div className="flex items-center gap-1 text-amber-500">
                     <Star className="h-4 w-4" />
@@ -347,7 +399,7 @@ const Welcome = () => {
         </section>
 
         <section className="relative mx-auto max-w-7xl px-6 pb-20 sm:px-8 lg:px-12 lg:pb-28">
-          <div className="theme-border theme-surface rounded-[2rem] border p-8 text-center shadow-sm backdrop-blur sm:p-10">
+          <div data-reveal className="reveal-on-scroll theme-border theme-surface rounded-[2rem] border p-8 text-center shadow-sm backdrop-blur sm:p-10">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] theme-muted">Ready when you are</p>
             <h2 className="theme-text mt-3 text-2xl font-semibold sm:text-3xl">Start with the vibe you want, then make it yours.</h2>
             <p className="theme-muted mx-auto mt-4 max-w-2xl text-sm leading-7 sm:text-base">
